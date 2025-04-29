@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DetalleDiaCalendario extends StatelessWidget {
-  const DetalleDiaCalendario({super.key});
+  final String fecha;
+  const DetalleDiaCalendario({required this.fecha, super.key});
 
   @override
   Widget build(BuildContext context) {
