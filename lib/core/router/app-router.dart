@@ -12,6 +12,7 @@ import 'package:nutrabit_admin/presentaciones/screens/pacientes/altaPaciente.dar
 import 'package:nutrabit_admin/presentaciones/screens/pacientes/altaArchivosPaciente.dart';
 import 'package:nutrabit_admin/presentaciones/screens/pacientes/detallePaciente.dart';
 import 'package:nutrabit_admin/presentaciones/screens/pacientes/pacientes.dart';
+import 'package:nutrabit_admin/presentaciones/screens/pacientes/turnos.dart';
 import 'package:nutrabit_admin/presentaciones/screens/publicidades/altaPubli.dart';
 import 'package:nutrabit_admin/presentaciones/screens/publicidades/detallePubli.dart';
 import 'package:nutrabit_admin/presentaciones/screens/publicidades/publicidades.dart';
@@ -43,7 +44,8 @@ final appRouter = GoRouter(
               path: '/archivos',
               builder: (context, state) => AltaArchivosPaciente(id: state.pathParameters['id'] as String)
             ) 
-          ]
+          ],
+          
         ),
         GoRoute(
           path: '/calendario',
@@ -54,6 +56,10 @@ final appRouter = GoRouter(
               builder: (context, state) => DetalleDiaCalendario(fecha: state.pathParameters['fecha'] as String)
             ) 
           ]
+        ),
+        GoRoute(
+          path: '/turnos',
+          builder: (context, state) => Turnos()
         ),
       ]
     ),
