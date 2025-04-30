@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class DetallePublicidad extends StatelessWidget {
-  const DetallePublicidad({super.key});
+final String id;
 
+  const DetallePublicidad({required this.id, super.key});
   @override
   Widget build(BuildContext context) {
     return const Placeholder();
