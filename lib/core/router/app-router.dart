@@ -20,63 +20,56 @@ import 'package:nutrabit_admin/presentaciones/screens/publicidades/publicidades.
 final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => Home()
-    ),
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => Login()
-    ),
+    GoRoute(path: '/', builder: (context, state) => Home()),
+    GoRoute(path: '/login', builder: (context, state) => Login()),
     GoRoute(
       path: '/pacientes',
       builder: (context, state) => Pacientes(),
       routes: [
-        GoRoute(
-          path: '/alta',
-          builder: (context, state) => AltaPaciente()
-        ),
+        GoRoute(path: '/alta', builder: (context, state) => AltaPaciente()),
         GoRoute(
           path: '/:id',
-          builder: (context, state) => DetallePaciente(id: state.pathParameters['id'] as String),
+          builder:
+              (context, state) =>
+                  DetallePaciente(id: state.pathParameters['id'] as String),
           routes: [
             GoRoute(
               path: '/archivos',
-              builder: (context, state) => AltaArchivosPaciente(id: state.pathParameters['id'] as String)
-            ) 
-          ],
-          
-        ),
-        GoRoute(
-          path: '/calendario',
-          builder: (context, state) => Calendario(),
-          routes: [
+              builder:
+                  (context, state) => AltaArchivosPaciente(
+                    id: state.pathParameters['id'] as String,
+                  ),
+            ),
             GoRoute(
-              path: '/:fecha',
-              builder: (context, state) => DetalleDiaCalendario(fecha: state.pathParameters['fecha'] as String)
-            ) 
-          ]
+              path: '/calendario',
+              builder: (context, state) => Calendario(),
+              routes: [
+                GoRoute(
+                  path: '/:fecha',
+                  builder:
+                      (context, state) => DetalleDiaCalendario(
+                        fecha: state.pathParameters['fecha'] as String,
+                      ),
+                ),
+              ],
+            ),
+            GoRoute(path: '/turnos', builder: (context, state) => Turnos()),
+          ],
         ),
-        GoRoute(
-          path: '/turnos',
-          builder: (context, state) => Turnos()
-        ),
-      ]
+      ],
     ),
-    
     GoRoute(
       path: '/publicidades',
       builder: (context, state) => Publicidades(),
       routes: [
         GoRoute(
           path: '/:id',
-          builder: (context, state) => DetallePublicidad(id: state.pathParameters['id'] as String)
+          builder:
+              (context, state) =>
+                  DetallePublicidad(id: state.pathParameters['id'] as String),
         ),
-        GoRoute(
-          path: '/alta',
-          builder: (context, state) => AltaPublicidad()
-        ) 
-      ]
+        GoRoute(path: '/alta', builder: (context, state) => AltaPublicidad()),
+      ],
     ),
     GoRoute(
       path: '/notificaciones',
@@ -84,23 +77,19 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/:id',
-          builder: (context, state) => DetalleNotificacion(id: state.pathParameters['id'] as String)
+          builder:
+              (context, state) =>
+                  DetalleNotificacion(id: state.pathParameters['id'] as String),
         ),
-        GoRoute(
-          path: '/alta',
-          builder: (context, state) => AltaNotificacion()
-        ) 
-      ]
+        GoRoute(path: '/alta', builder: (context, state) => AltaNotificacion()),
+      ],
     ),
     GoRoute(
       path: '/listaInteres',
       builder: (context, state) => ListaInteres(),
       routes: [
-        GoRoute(
-          path: '/alta',
-          builder: (context, state) => AltaListaInteres()
-        ) 
-      ]
-    )
-  ]
+        GoRoute(path: '/alta', builder: (context, state) => AltaListaInteres()),
+      ],
+    ),
+  ],
 );
