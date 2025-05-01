@@ -7,6 +7,7 @@ environment:
   sdk: ^3.7.2
 
 dependencies:
+  firebase_data_connect: ^0.1.4+1
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1
