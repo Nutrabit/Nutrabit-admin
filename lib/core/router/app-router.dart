@@ -1,30 +1,30 @@
 import 'package:go_router/go_router.dart';
-import 'package:nutrabit_admin/presentaciones/screens/calendario/calendario.dart';
-import 'package:nutrabit_admin/presentaciones/screens/calendario/detalleDiaCalendario.dart';
-import 'package:nutrabit_admin/presentaciones/screens/home.dart';
-import 'package:nutrabit_admin/presentaciones/screens/listaInteres/altaListaInteres.dart';
-import 'package:nutrabit_admin/presentaciones/screens/listaInteres/listaInteres.dart';
-import 'package:nutrabit_admin/presentaciones/screens/login.dart';
-import 'package:nutrabit_admin/presentaciones/screens/notificaciones/altaNotificacion.dart';
-import 'package:nutrabit_admin/presentaciones/screens/notificaciones/detalleNotificacion.dart';
-import 'package:nutrabit_admin/presentaciones/screens/notificaciones/notificaciones.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/altaPaciente.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/altaArchivosPaciente.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/detallePaciente.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/pacientes.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/turnos.dart';
-import 'package:nutrabit_admin/presentaciones/screens/publicidades/altaPubli.dart';
-import 'package:nutrabit_admin/presentaciones/screens/publicidades/detallePubli.dart';
-import 'package:nutrabit_admin/presentaciones/screens/publicidades/publicidades.dart';
+import 'package:nutrabit_admin/presentation/screens/calendar/calendario.dart';
+import 'package:nutrabit_admin/presentation/screens/calendar/detalleDiaCalendario.dart';
+import 'package:nutrabit_admin/presentation/screens/home.dart';
+import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
+import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
+import 'package:nutrabit_admin/presentation/screens/login.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/altaPaciente.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/altaArchivosPaciente.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/detallePaciente.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
+import 'package:nutrabit_admin/presentation/screens/publicity/altaPubli.dart';
+import 'package:nutrabit_admin/presentation/screens/publicity/detallePubli.dart';
+import 'package:nutrabit_admin/presentation/screens/publicity/publicidades.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/pacientes',
   routes: [
     GoRoute(path: '/', builder: (context, state) => Home()),
     GoRoute(path: '/login', builder: (context, state) => Login()),
     GoRoute(
       path: '/pacientes',
-      builder: (context, state) => Pacientes(),
+      builder: (context, state) => PatientList(),
       routes: [
         GoRoute(path: '/alta', builder: (context, state) => AltaPaciente()),
         GoRoute(
