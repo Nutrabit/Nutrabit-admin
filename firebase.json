@@ -1,13 +1,8 @@
-
 {
   "emulators": {
-    "dataconnect": {
-      "dataDir": "dataconnect/.dataconnect/pgliteData"
-    }
+    "dataconnect": { "dataDir": "dataconnect/.dataconnect/pgliteData" }
   },
-  "dataconnect": {
-    "source": "dataconnect"
-  },
+  "dataconnect": { "source": "dataconnect" },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
@@ -23,28 +18,36 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint"
-      ]
+      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run lint"]
     }
   ],
   "hosting": {
     "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  },
+  "storage": { "rules": "storage.rules" },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "nutrabit-7a4ce",
+          "appId": "1:1018369904543:android:76a8c66978da33de8837aa",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "nutrabit-7a4ce",
+          "configurations": {
+            "android": "1:1018369904543:android:76a8c66978da33de8837aa",
+            "ios": "1:1018369904543:ios:0bd745fcc3aed55b8837aa",
+            "macos": "1:1018369904543:ios:0bd745fcc3aed55b8837aa",
+            "web": "1:1018369904543:web:81f065db5d12e4278837aa",
+            "windows": "1:1018369904543:web:d34f72e4ec46bc4f8837aa"
+          }
+        }
       }
-    ]
-  },
-  "storage": {
-    "rules": "storage.rules"
-  },
-  "flutter":{"platforms":{"android":{"default":{"projectId":"nutrabit","appId":"1:977116124631:android:e11305f9d3c1ae04b52792","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"nutrabit","configurations":{"android":"1:977116124631:android:e11305f9d3c1ae04b52792","ios":"1:977116124631:ios:a7103c0d1207e696b52792","macos":"1:977116124631:ios:a7103c0d1207e696b52792","web":"1:977116124631:web:527efa6e5901b561b52792","windows":"1:977116124631:web:f9665a78bcd9ae15b52792"}}}}}
+    }
+  }
 }
-
