@@ -14,7 +14,7 @@ class DefaultConnector {
   static ConnectorConfig connectorConfig = ConnectorConfig(
     'us-central1',
     'default',
-    'nutrabitadmin',
+    'nutrabit-7a4ce',
   );
 
   DefaultConnector({required this.dataConnect});
