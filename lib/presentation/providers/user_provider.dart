@@ -8,7 +8,16 @@ final usersProvider = FutureProvider<List<AppUser>>((ref) async {
   QuerySnapshot snapshot = await firestore.collection('users').get();
   List<AppUser> users = snapshot.docs.map((doc) => AppUser.fromFirestore(doc)).toList();
   
-  users.sort((a, b) => normalize(a.lastname).compareTo(normalize(b.lastname)));
+  users.sort((a, b) => normalize(a.name).compareTo(normalize(b.name)));
   
   return users;
 });
+
+Future<void> addUser(AppUser user) async {
+  final firestore = FirebaseFirestore.instance;
+  try {
+    await firestore.collection('users').add(user.toMap());
+  } catch (e) {
+    throw Exception('Error al agregar el usuario: $e');
+  }
+}
