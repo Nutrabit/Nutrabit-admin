@@ -1,33 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 
-class Login extends ConsumerStatefulWidget  {
-  
+class Login extends ConsumerStatefulWidget {
   @override
-   ConsumerState<Login> createState() => _LoginState();
+  ConsumerState<Login> createState() => _LoginState();
 }
+
 class _LoginState extends ConsumerState<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   String email = '';
   String password = '';
-
-  void login() async {
-    
-    String email = emailController.text;
-    String password = passwordController.text;
-    final credentials = (emailController.text, passwordController.text);
-    ref.read(loginAuthProvider(credentials));
-    try {
-    
-    // Podés navegar a la home, por ejemplo
-  } catch (e) {
-    print('Error de login: $e');
-    // Mostrar error con un Snackbar o similar
-  }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +36,28 @@ class _LoginState extends ConsumerState<Login> {
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Contraseña',
-                
               ),
             ),
-            ElevatedButton(onPressed: login, child: Text("Iniciar Sesión")),
+            ElevatedButton(
+              onPressed: () {
+                final email = emailController.text;
+                final password = passwordController.text;
+                final cred = ref.read(authProvider.notifier).login(email, password)
+                    .then((value) {
+                  if (value != null) {
+                    context.go('/');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error al iniciar sesión'),
+                      ),
+                    );
+                  }
+                });
+                
+              },
+              child: Text("Iniciar Sesión"),
+            ),
           ],
         ),
       ),
