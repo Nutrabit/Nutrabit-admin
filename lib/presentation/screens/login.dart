@@ -89,13 +89,19 @@ class _LoginState extends ConsumerState<Login> {
                     final cred = ref
                         .read(authProvider.notifier)
                         .login(email, password)
-                        .then((value) {
-                          if (value != null) {
+                        .then((r) {
+                          if (r == true) {
                             context.go('/');
-                          } else {
+                          } else if (r == false) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Error al iniciar sesión'),
+                                content: Text('El usuario no es admin'),
+                              ),
+                            );
+                          }else if (r == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Usuario y/o contraseña incorrectos'),
                               ),
                             );
                           }

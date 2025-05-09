@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 final authProvider = AsyncNotifierProvider<AuthNotifier, void>(
   () => AuthNotifier(),
 );
+
 class AuthNotifier extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {
@@ -11,22 +14,34 @@ class AuthNotifier extends AsyncNotifier<void> {
     throw UnimplementedError();
   }
 
-  Future<UserCredential?> login(String emailAddress, String password) async {
+  FirebaseFirestore db = FirebaseFirestore.instance;
+
+  Future<bool?> login(String emailAddress, String password) async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailAddress,
         password: password,
       );
-      print(credential);
-      return credential;
+
+      String uid = credential.user!.uid;
+      return await isAdmin(uid);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         print('No user found for that email.');
-        return null;
       } else if (e.code == 'wrong-password') {
         print('Wrong password provided for that user.');
-        return null;
       }
+      return null;
     }
   }
+
+  Future<bool> isAdmin(String uid) async {
+  try {
+    final doc = await db.collection("admin").doc(uid).get();
+    return doc.exists; 
+  } catch (e) {
+    print("Error al verificar admin: $e");
+    return false;
+  }
+}
 }
