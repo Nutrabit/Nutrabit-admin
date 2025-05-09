@@ -14,9 +14,9 @@ String normalize(String value) {
 
 bool isValidEmail(String email) {
   final emailRegex = RegExp(
-    r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@" 
-    r"[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" 
-    r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*" 
+    r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+    r"[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+    r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*"
     r"\.(com|net|org|edu|gov|mil|info|io|co)$",
     caseSensitive: false,
   );
@@ -24,9 +24,13 @@ bool isValidEmail(String email) {
 }
 
 String generateRandomPassword({int length = 6}) {
-  const chars ='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   final rand = Random.secure();
-  return List.generate(length,(index) => chars[rand.nextInt(chars.length)],).join();
+  return List.generate(
+    length,
+    (index) => chars[rand.nextInt(chars.length)],
+  ).join();
 }
 
 Future<void> showCustomDialog({
@@ -38,6 +42,7 @@ Future<void> showCustomDialog({
 }) async {
   return showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
         contentPadding: const EdgeInsets.all(20),
@@ -55,8 +60,11 @@ Future<void> showCustomDialog({
               onPressed: onPressed ?? () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

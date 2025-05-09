@@ -37,95 +37,119 @@ class PatientRegistrationForm extends ConsumerWidget {
     final TextEditingController heightController = TextEditingController();
     final TextEditingController weightController = TextEditingController();
     final ValueNotifier<String?> genderNotifier = ValueNotifier<String?>(null);
+    final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Text(
-              'Nuevo paciente',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ),
-          SizedBox(height: 16),
-          NameField(controller: nameController),
-          SizedBox(height: 12),
-          LastNameField(controller: lastNameController),
-          SizedBox(height: 12),
-          EmailField(
-            controller: emailController,
-            isValidEmailNotifier: emailInvalid,
-          ),
-          SizedBox(height: 12),
-          Row(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: BirthdateField(
-                  selectedBirthdayNotifier: birthdateNotifier,
+              Center(
+                child: Text(
+                  'Nuevo paciente',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
-              SizedBox(width: 12),
-              Expanded(
-                child: GenderDropdown(selectedGenderNotifier: genderNotifier),
+              SizedBox(height: 16),
+              NameField(controller: nameController),
+              SizedBox(height: 12),
+              LastNameField(controller: lastNameController),
+              SizedBox(height: 12),
+              EmailField(
+                controller: emailController,
+                isValidEmailNotifier: emailInvalid,
               ),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: BirthdateField(
+                      selectedBirthdayNotifier: birthdateNotifier,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: GenderDropdown(
+                      selectedGenderNotifier: genderNotifier,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: HeightField(controller: heightController)),
+                  SizedBox(width: 12),
+                  Expanded(child: WeightField(controller: weightController)),
+                ],
+              ),
+              SizedBox(height: 12),
+              Text(
+                '* Campos obligatorios',
+                style: TextStyle(fontSize: 12, color: Colors.red),
+              ),
+              CreateButton(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  if (nameController.text.isEmpty ||
+                      lastNameController.text.isEmpty ||
+                      emailController.text.isEmpty) {
+                    messenger
+                      ..hideCurrentSnackBar()
+                      ..clearSnackBars()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Por favor llená los campos obligatorios.',
+                          ),
+                        ),
+                      );
+                    return;
+                  } else if (!emailInvalid.value) {
+                    messenger
+                      ..hideCurrentSnackBar()
+                      ..clearSnackBars()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text('Por favor ingresá un email válido.'),
+                        ),
+                      );
+                    return;
+                  }
+                  isLoading.value = true;
+                  await createUser(
+                    ref: ref,
+                    name: nameController.text.trim(),
+                    lastName: lastNameController.text.trim(),
+                    email: emailController.text.trim(),
+                    birthday: birthdateNotifier.value,
+                    height: int.tryParse(heightController.text.trim()) ?? 0,
+                    weight: int.tryParse(weightController.text.trim()) ?? 0,
+                    gender: genderNotifier.value ?? '',
+                    context: context,
+                    onDone: () => isLoading.value = false,
+                  );
+                },
+              ),
+              SizedBox(height: 16),
             ],
           ),
-          SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: HeightField(controller: heightController)),
-              SizedBox(width: 12),
-              Expanded(child: WeightField(controller: weightController)),
-            ],
-          ),
-          SizedBox(height: 12),
-          Text(
-            '* Campos obligatorios',
-            style: TextStyle(fontSize: 12, color: Colors.red),
-          ),
-          CreateButton(
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-
-              if (nameController.text.isEmpty ||
-                  lastNameController.text.isEmpty ||
-                  emailController.text.isEmpty) {
-                messenger
-                  ..hideCurrentSnackBar()
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text('Por favor llená los campos obligatorios.'),
-                    ),
-                  );
-              } else if (!emailInvalid.value) {
-                messenger
-                  ..hideCurrentSnackBar()
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text('Por favor ingresá un email válido.'),
-                    ),
-                  );
-              } else {
-                createUser(
-                  ref: ref,
-                  name: nameController.text.trim(),
-                  lastName: lastNameController.text.trim(),
-                  email: emailController.text.trim(),
-                  birthday: birthdateNotifier.value,
-                  height: int.tryParse(heightController.text.trim()) ?? 0,
-                  weight: int.tryParse(weightController.text.trim()) ?? 0,
-                  gender: genderNotifier.value ?? '',
-                  context: context,
-                );
-              }
-            },
-          ),
-          SizedBox(height: 16),
-        ],
-      ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: isLoading,
+          builder: (_, loading, __) {
+            if (!loading) return SizedBox.shrink();
+            return Positioned.fill(
+              child: GestureDetector(
+                onTap: () {},
+                behavior: HitTestBehavior.opaque,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

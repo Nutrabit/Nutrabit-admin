@@ -15,6 +15,7 @@ Future<void> createUser({
   required int weight,
   required String gender,
   required BuildContext context,
+  required VoidCallback onDone,
 }) async {
   AppUser newUser = AppUser(
     id: '',
@@ -23,28 +24,26 @@ Future<void> createUser({
     email: email,
     birthday: birthday,
     dni: '',
-    age: 0,
     height: height,
     weight: weight,
     gender: gender,
     isActive: true,
     profilePic: '',
     goal: '',
-    files: [],
     events: [],
     appointments: [],
   );
-  
+
   try {
     await addUser(newUser);
     ref.refresh(usersProvider);
-
+    onDone();
     if (context.mounted) {
       await showCustomDialog(
         context: context,
         message: 'Usuario creado exitosamente.',
         buttonText: 'Continuar',
-        buttonColor: Colors.green,
+        buttonColor: Color(0xFFBAF4C7),
         onPressed: () {
           Navigator.of(context).pop();
           context.go("/pacientes");
@@ -52,12 +51,13 @@ Future<void> createUser({
       );
     }
   } catch (e) {
+    onDone();
     if (context.mounted) {
       await showCustomDialog(
         context: context,
         message: 'Ocurrió un error: $e',
         buttonText: 'Continuar',
-        buttonColor: Colors.red,
+        buttonColor: Color(0xFFDC607A),
         onPressed: () {
           Navigator.of(context).pop();
         },
