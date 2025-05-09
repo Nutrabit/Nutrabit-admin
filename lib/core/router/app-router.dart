@@ -8,10 +8,10 @@ import 'package:nutrabit_admin/presentation/screens/login.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
-import 'package:nutrabit_admin/presentation/screens/patients/altaPaciente.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/altaArchivosPaciente.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/detallePaciente.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
 import 'package:nutrabit_admin/presentation/screens/publicity/altaPubli.dart';
 import 'package:nutrabit_admin/presentation/screens/publicity/detallePubli.dart';
@@ -26,7 +26,7 @@ final appRouter = GoRouter(
       path: '/pacientes',
       builder: (context, state) => PatientList(),
       routes: [
-        GoRoute(path: '/alta', builder: (context, state) => AltaPaciente()),
+        GoRoute(path: '/alta', builder: (context, state) => PatientRegistration()),
         GoRoute(
           path: '/:id',
           builder:
