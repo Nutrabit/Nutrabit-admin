@@ -12,7 +12,7 @@ class _LoginState extends ConsumerState<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
-
+  bool isPasswordVisible = false;
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -49,7 +49,7 @@ class _LoginState extends ConsumerState<Login> {
                 controller: emailController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  hintText: 'Email',
+                  labelText: 'Email',
                 ),
               ),
               const SizedBox(height: 20),
@@ -57,10 +57,22 @@ class _LoginState extends ConsumerState<Login> {
               /// Contraseña
               TextField(
                 controller: passwordController,
-                obscureText: true,
+                obscureText: !isPasswordVisible,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  hintText: 'Contraseña',
+                  labelText: 'Contraseña',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        isPasswordVisible = !isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
               ),
               SizedBox(height: 5),
@@ -108,7 +120,6 @@ class _LoginState extends ConsumerState<Login> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('El usuario no es admin')),
                             );
-       
                           } else if (r == null) {
                             setState(() {
                               isLoading = false;
@@ -120,7 +131,6 @@ class _LoginState extends ConsumerState<Login> {
                                   'Usuario y/o contraseña incorrectos',
                                 ),
                               ),
-                              
                             );
                           }
                         });
