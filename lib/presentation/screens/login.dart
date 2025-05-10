@@ -11,8 +11,7 @@ class Login extends ConsumerStatefulWidget {
 class _LoginState extends ConsumerState<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  String email = '';
-  String password = '';
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +53,7 @@ class _LoginState extends ConsumerState<Login> {
                 ),
               ),
               const SizedBox(height: 20),
+
               /// Contraseña
               TextField(
                 controller: passwordController,
@@ -66,8 +66,7 @@ class _LoginState extends ConsumerState<Login> {
               SizedBox(height: 5),
               // Olvidaste tu contraseña
               Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () {
@@ -89,6 +88,9 @@ class _LoginState extends ConsumerState<Login> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
+                    setState(() {
+                      isLoading = true;
+                    });
                     final email = emailController.text;
                     final password = passwordController.text;
                     final cred = ref
@@ -99,11 +101,18 @@ class _LoginState extends ConsumerState<Login> {
                             // Si el usuario es admin, redirigir a la pantalla de inicio
                             context.go('/');
                           } else if (r == false) {
+                            setState(() {
+                              isLoading = false;
+                            });
                             // Si el usuario no es admin, mostrar un mensaje
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('El usuario no es admin')),
                             );
+       
                           } else if (r == null) {
+                            setState(() {
+                              isLoading = false;
+                            });
                             // Si el usuario no existe o la contraseña es incorrecta, mostrar un mensaje
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -111,6 +120,7 @@ class _LoginState extends ConsumerState<Login> {
                                   'Usuario y/o contraseña incorrectos',
                                 ),
                               ),
+                              
                             );
                           }
                         });
@@ -119,12 +129,20 @@ class _LoginState extends ConsumerState<Login> {
                     backgroundColor: Color.fromRGBO(220, 96, 122, 1),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        10,
-                      ), 
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text("Ingresar"),
+                  child:
+                      isLoading
+                          ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : Text("Ingresar"),
                 ),
               ),
               SizedBox(height: 20),
