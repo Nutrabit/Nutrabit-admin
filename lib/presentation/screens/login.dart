@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
+import 'package:flutter/gestures.dart';
+
 
 class Login extends ConsumerStatefulWidget {
+  const Login({super.key});
+
   @override
   ConsumerState<Login> createState() => _LoginState();
 }
@@ -53,7 +57,6 @@ class _LoginState extends ConsumerState<Login> {
                 ),
               ),
               const SizedBox(height: 20),
-
               /// Contraseña
               TextField(
                 controller: passwordController,
@@ -82,7 +85,7 @@ class _LoginState extends ConsumerState<Login> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      // context.go('/forgot-password');
+                      context.go('/forgot-password');
                     },
                     child: Text(
                       '¿Olvidaste tu contraseña?',
@@ -95,8 +98,8 @@ class _LoginState extends ConsumerState<Login> {
                 ],
               ),
               SizedBox(height: 20),
+              // Botón de submit
               SizedBox(
-                // Botón de submit
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
@@ -157,53 +160,42 @@ class _LoginState extends ConsumerState<Login> {
               ),
               SizedBox(height: 20),
               // Términos y condiciones
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Al hacer clic en continuar, acepta nuestros ',
-                    style: TextStyle(
-                      color: Color.fromRGBO(130, 130, 130, 1),
-                      fontSize: 12,
-                    ),
+              Text.rich(
+                TextSpan(
+                  text: 'Al hacer clic en ingresar, acepta nuestros ',
+                  style: TextStyle(
+                    color: Color.fromRGBO(130, 130, 130, 1),
+                    fontSize: 12,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // Abrí pantalla o link de términos
-                      //context.push('/terminos');
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                    ), // saca el espacio extra
-                    child: Text(
-                      'términos de servicio',
+                  children: [
+                    TextSpan(
+                      text: 'términos de servicio',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        color: Colors.purple, 
                       ),
+                      recognizer:
+                          TapGestureRecognizer()
+                            ..onTap = () {
+                              context.push('/terminos');
+                            },
                     ),
-                  ),
-                  Text(
-                    ' y nuestra ',
-                    style: TextStyle(
-                      color: Color.fromRGBO(130, 130, 130, 1),
-                      fontSize: 12,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      //context.push('/privacidad');
-                    },
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                    child: Text(
-                      'política de privacidad',
+                    TextSpan(text: ' y nuestra '),
+                    TextSpan(
+                      text: 'política de privacidad',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        color: Colors.purple,
                       ),
+                      recognizer:
+                          TapGestureRecognizer()
+                            ..onTap = () {
+                              context.push('/privacidad');
+                            },
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
