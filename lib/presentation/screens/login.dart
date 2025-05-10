@@ -25,6 +25,7 @@ class _LoginState extends ConsumerState<Login> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Logo
               Container(
                 width: 200,
                 height: 200,
@@ -37,14 +38,14 @@ class _LoginState extends ConsumerState<Login> {
                 ),
               ),
               const SizedBox(height: 20),
+              // Título
               Text(
-                'Iniciar Sesión',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Iniciar sesión',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
+              //// Campos de texto
+              /// Email
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -53,6 +54,7 @@ class _LoginState extends ConsumerState<Login> {
                 ),
               ),
               const SizedBox(height: 20),
+              /// Contraseña
               TextField(
                 controller: passwordController,
                 obscureText: true,
@@ -61,9 +63,11 @@ class _LoginState extends ConsumerState<Login> {
                   hintText: 'Contraseña',
                 ),
               ),
+              SizedBox(height: 5),
+              // Olvidaste tu contraseña
               Row(
                 mainAxisAlignment:
-                    MainAxisAlignment.end, // Alinea los elementos a la derecha
+                    MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () {
@@ -81,6 +85,7 @@ class _LoginState extends ConsumerState<Login> {
               ),
               SizedBox(height: 20),
               SizedBox(
+                // Botón de submit
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
@@ -91,17 +96,20 @@ class _LoginState extends ConsumerState<Login> {
                         .login(email, password)
                         .then((r) {
                           if (r == true) {
+                            // Si el usuario es admin, redirigir a la pantalla de inicio
                             context.go('/');
                           } else if (r == false) {
+                            // Si el usuario no es admin, mostrar un mensaje
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('El usuario no es admin'),
-                              ),
+                              SnackBar(content: Text('El usuario no es admin')),
                             );
-                          }else if (r == null) {
+                          } else if (r == null) {
+                            // Si el usuario no existe o la contraseña es incorrecta, mostrar un mensaje
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Usuario y/o contraseña incorrectos'),
+                                content: Text(
+                                  'Usuario y/o contraseña incorrectos',
+                                ),
                               ),
                             );
                           }
@@ -113,20 +121,62 @@ class _LoginState extends ConsumerState<Login> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         10,
-                      ), // Sin bordes redondeados
+                      ), 
                     ),
                   ),
-                  child: Text("Iniciar Sesión"),
+                  child: Text("Ingresar"),
                 ),
               ),
               SizedBox(height: 20),
-               Text('Al hacer clic en continuar, acepta nuestros términos de servicio y nuestra política de privacidad', 
-                  style: TextStyle(
-                    color: Color.fromRGBO(130, 130, 130, 1),
-                    fontSize: 12,
+              // Términos y condiciones
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Al hacer clic en continuar, acepta nuestros ',
+                    style: TextStyle(
+                      color: Color.fromRGBO(130, 130, 130, 1),
+                      fontSize: 12,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
+                  TextButton(
+                    onPressed: () {
+                      // Abrí pantalla o link de términos
+                      //context.push('/terminos');
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                    ), // saca el espacio extra
+                    child: Text(
+                      'términos de servicio',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    ' y nuestra ',
+                    style: TextStyle(
+                      color: Color.fromRGBO(130, 130, 130, 1),
+                      fontSize: 12,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      //context.push('/privacidad');
+                    },
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                    child: Text(
+                      'política de privacidad',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
