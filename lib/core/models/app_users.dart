@@ -6,8 +6,6 @@ class AppUser {
   final String lastname;
   final String email;
   final DateTime? birthday;
-  final String dni;
-  // final int age;
   final int height;
   final int weight;
   final String gender;
@@ -26,8 +24,6 @@ class AppUser {
     required this.lastname,
     required this.email,
     required this.birthday,
-    required this.dni,
-    // required this.age,
     required this.height,
     required this.weight,
     required this.gender,
@@ -54,8 +50,6 @@ class AppUser {
       birthday: data['birthday'] != null
           ? (data['birthday'] as Timestamp).toDate()
           : null,
-      dni: data['dni']?.toString() ?? '',
-      // age: data['age'] ?? 0,
       height: data['height'] ?? 0,
       weight: data['weight'] ?? 0,
       gender: data['gender'] ?? '',
@@ -94,8 +88,6 @@ class AppUser {
       'lastname': lastname,
       'email': email,
       'birthday': birthday != null ? Timestamp.fromDate(birthday!) : null,
-      'dni': dni,
-      // 'age': age,
       'height': height,
       'weight': weight,
       'gender': gender,
