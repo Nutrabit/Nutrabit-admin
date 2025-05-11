@@ -15,20 +15,20 @@ class _LogoutState extends ConsumerState<Logout> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-              icon: const FaIcon(FontAwesomeIcons.rightFromBracket),
-              tooltip: 'Cerrar sesión',
-              onPressed: () {
-                final logout = ref
-                .read(authProvider.notifier)
-                .logout()
-                .then((r) {
-                  if(r == true){
-                    context.go('/login');
-                  } else {
-                    print(r);
-                  };
-                });
-              },
-            );
+      icon: const FaIcon(FontAwesomeIcons.rightFromBracket),
+      tooltip: 'Cerrar sesión',
+      onPressed: () {
+        final logout = ref.read(authProvider.notifier).logout().then((r) {
+          if (r == true) {
+            context.go('/login');
+          } else {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión')));
+          }
+          ;
+        });
+      },
+    );
   }
 }
