@@ -34,7 +34,9 @@ class _PatientListState extends ConsumerState<PatientList> {
         centerTitle: true,
         title: Text('Pacientes'),
         leading: const BackButton(),
+        actions: [Logout()],
       ),
+      
       body:
       Column(
         children: [
@@ -69,7 +71,6 @@ class _PatientListState extends ConsumerState<PatientList> {
           ),
           
           ),
-          Logout(),
         ],
       ),
       floatingActionButton: AddPatientButton(
