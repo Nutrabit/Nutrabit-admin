@@ -42,8 +42,8 @@ class _LogoutState extends ConsumerState<Logout> {
                 }
               },
               style: TextButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(220, 96, 122, 1),
-                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFFD7F9DE),
+                    foregroundColor: Color(0xFF606060),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
