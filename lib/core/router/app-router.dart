@@ -16,6 +16,7 @@ import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
 import 'package:nutrabit_admin/presentation/screens/publicity/altaPubli.dart';
 import 'package:nutrabit_admin/presentation/screens/publicity/detallePubli.dart';
 import 'package:nutrabit_admin/presentation/screens/publicity/publicidades.dart';
+import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -28,24 +29,23 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(path: '/alta', builder: (context, state) => PatientRegistration()),
         GoRoute(
-          path: '/:id',
+          path: ':id',
           builder:
               (context, state) =>
                   DetallePaciente(id: state.pathParameters['id'] as String),
           routes: [
             GoRoute(
-              path: '/archivos',
-              builder:
-                  (context, state) => AltaArchivosPaciente(
-                    id: state.pathParameters['id'] as String,
-                  ),
+              path: 'archivos',
+              builder: (context, state) => AttachFilesScreen(
+                patientId: state.pathParameters['id'] as String,
+              ),
             ),
             GoRoute(
-              path: '/calendario',
+              path: 'calendario',
               builder: (context, state) => Calendario(),
               routes: [
                 GoRoute(
-                  path: '/:fecha',
+                  path: ':fecha',
                   builder:
                       (context, state) => DetalleDiaCalendario(
                         fecha: state.pathParameters['fecha'] as String,
@@ -53,7 +53,7 @@ final appRouter = GoRouter(
                 ),
               ],
             ),
-            GoRoute(path: '/turnos', builder: (context, state) => Turnos()),
+            GoRoute(path: 'turnos', builder: (context, state) => Turnos()),
           ],
         ),
       ],
@@ -63,12 +63,12 @@ final appRouter = GoRouter(
       builder: (context, state) => Publicidades(),
       routes: [
         GoRoute(
-          path: '/:id',
+          path: ':id',
           builder:
               (context, state) =>
                   DetallePublicidad(id: state.pathParameters['id'] as String),
         ),
-        GoRoute(path: '/alta', builder: (context, state) => AltaPublicidad()),
+        GoRoute(path: 'alta', builder: (context, state) => AltaPublicidad()),
       ],
     ),
     GoRoute(
@@ -76,19 +76,19 @@ final appRouter = GoRouter(
       builder: (context, state) => Notificaciones(),
       routes: [
         GoRoute(
-          path: '/:id',
+          path: ':id',
           builder:
               (context, state) =>
                   DetalleNotificacion(id: state.pathParameters['id'] as String),
         ),
-        GoRoute(path: '/alta', builder: (context, state) => AltaNotificacion()),
+        GoRoute(path: 'alta', builder: (context, state) => AltaNotificacion()),
       ],
     ),
     GoRoute(
-      path: '/listaInteres',
+      path: 'listaInteres',
       builder: (context, state) => ListaInteres(),
       routes: [
-        GoRoute(path: '/alta', builder: (context, state) => AltaListaInteres()),
+        GoRoute(path: 'alta', builder: (context, state) => AltaListaInteres()),
       ],
     ),
   ],
