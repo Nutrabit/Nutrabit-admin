@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/models/app_users.dart';
@@ -14,9 +15,21 @@ final usersProvider = FutureProvider<List<AppUser>>((ref) async {
 });
 
 Future<void> addUser(AppUser user) async {
+  final auth = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
   try {
-    await firestore.collection('users').add(user.toMap());
+    final password = generateRandomPassword();
+    UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+      email: user.email,
+      password: password,
+    );
+    final uid = userCredential.user!.uid;
+    final newUser = user.copyWith(id: uid);
+    await firestore.collection('users').doc(uid).set(newUser.toMap());
+
+
+  } on FirebaseAuthException catch (e) {
+    throw Exception('Error de autenticación: ${e.message}');
   } catch (e) {
     throw Exception('Error al agregar el usuario: $e');
   }

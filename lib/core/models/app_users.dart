@@ -14,13 +14,11 @@ class AppUser {
   final bool isActive;
   final String profilePic;
   final String goal;
-
   final List<Map<String, Object?>> events;
   final List<Timestamp> appointments;
-
   final DateTime createdAt;
-  final DateTime modifiedAt;  
-  final DateTime? deletedAt;  
+  final DateTime modifiedAt;
+  final DateTime? deletedAt;
 
   AppUser({
     required this.id,
@@ -38,18 +36,18 @@ class AppUser {
     required this.goal,
     required this.events,
     required this.appointments,
-    DateTime? createdAtParam, 
+    DateTime? createdAtParam,
     DateTime? modifiedAtParam,
-    DateTime? deletedAtParam, 
-  })  : createdAt = createdAtParam ?? DateTime.now(),
-        modifiedAt = modifiedAtParam ?? DateTime.now(),
-        deletedAt = deletedAtParam;  
+    DateTime? deletedAtParam,
+  }) : createdAt = createdAtParam ?? DateTime.now(),
+       modifiedAt = modifiedAtParam ?? DateTime.now(),
+       deletedAt = deletedAtParam;
 
   factory AppUser.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
     return AppUser(
-      id: doc.id,
+      id: data['id'] ?? '',
       name: data['name'] ?? '',
       lastname: data['lastname'] ?? '',
       email: data['email'] ?? '',
@@ -64,26 +62,34 @@ class AppUser {
       isActive: data['isActive'] ?? false,
       profilePic: data['profilePic'] ?? '',
       goal: data['goal'] ?? '',
-      events: (data['events'] as List?)
+      events:
+          (data['events'] as List?)
               ?.map((e) => Map<String, Object?>.from(e as Map))
-              .toList() ?? [],
-      appointments: (data['appointments'] as List?)
+              .toList() ??
+          [],
+      appointments:
+          (data['appointments'] as List?)
               ?.map((e) => e as Timestamp)
-              .toList() ?? [],
-      createdAtParam: data['createdAt'] != null
-          ? (data['createdAt'] as Timestamp).toDate()
-          : DateTime.now(),
-      modifiedAtParam: data['modifiedAt'] != null
-          ? (data['modifiedAt'] as Timestamp).toDate()
-          : DateTime.now(),
-      deletedAtParam: data['deletedAt'] != null
-          ? (data['deletedAt'] as Timestamp).toDate()
-          : null,
+              .toList() ??
+          [],
+      createdAtParam:
+          data['createdAt'] != null
+              ? (data['createdAt'] as Timestamp).toDate()
+              : DateTime.now(),
+      modifiedAtParam:
+          data['modifiedAt'] != null
+              ? (data['modifiedAt'] as Timestamp).toDate()
+              : DateTime.now(),
+      deletedAtParam:
+          data['deletedAt'] != null
+              ? (data['deletedAt'] as Timestamp).toDate()
+              : null,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'lastname': lastname,
       'email': email,
@@ -100,7 +106,45 @@ class AppUser {
       'appointments': appointments,
       'createdAt': Timestamp.fromDate(createdAt),
       'modifiedAt': Timestamp.fromDate(modifiedAt),
-      'deletedAt': deletedAt != null ? Timestamp.fromDate(deletedAt!) : null, 
+      'deletedAt': deletedAt != null ? Timestamp.fromDate(deletedAt!) : null,
     };
+  }
+
+  AppUser copyWith({
+    String? id,
+    String? name,
+    String? lastname,
+    String? email,
+    DateTime? birthday,
+    int? height,
+    int? weight,
+    String? gender,
+    bool? isActive,
+    String? profilePic,
+    String? goal,
+    List<Map<String, Object?>>? events,
+    List<Timestamp>? appointments,
+    DateTime? createdAtParam,
+    DateTime? modifiedAtParam,
+    DateTime? deletedAtParam,
+  }) {
+    return AppUser(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      lastname: lastname ?? this.lastname,
+      email: email ?? this.email,
+      birthday: birthday ?? this.birthday,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
+      gender: gender ?? this.gender,
+      isActive: isActive ?? this.isActive,
+      profilePic: profilePic ?? this.profilePic,
+      goal: goal ?? this.goal,
+      events: events ?? this.events,
+      appointments: appointments ?? this.appointments,
+      createdAtParam: createdAtParam ?? this.createdAt,
+      modifiedAtParam: modifiedAtParam ?? this.modifiedAt,
+      deletedAtParam: deletedAtParam ?? this.deletedAt,
+    );
   }
 }
