@@ -4,6 +4,7 @@ import 'package:nutrabit_admin/core/services/user_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
+import 'package:nutrabit_admin/widgets/logout.dart';
 
 class PatientRegistration extends StatelessWidget {
   const PatientRegistration({super.key});
@@ -15,6 +16,7 @@ class PatientRegistration extends StatelessWidget {
         centerTitle: false,
         title: const Text('Pacientes'),
         leading: const BackButton(),
+        actions: [Logout()],
       ),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
