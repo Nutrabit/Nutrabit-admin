@@ -1,30 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:math';
-
-String _generateRandomPassword({int length = 6}) {
-  const chars ='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  final rand = Random.secure();
-  return List.generate(length,(index) => chars[rand.nextInt(chars.length)],).join();
-}
 
 class AppUser {
   final String id;
   final String name;
   final String lastname;
   final String email;
-  final Timestamp birthday; 
+  final DateTime? birthday;
   final String dni;
   final int age;
   final int height;
   final int weight;
+  final String gender;
   final bool isActive;
-  final String password;
   final String profilePic;
   final String goal;
 
-  final List<Map<String, Object?>> files;
   final List<Map<String, Object?>> events;
   final List<Timestamp> appointments;
+
+  final DateTime createdAt;
+  final DateTime modifiedAt;  
+  final DateTime? deletedAt;  
 
   AppUser({
     required this.id,
@@ -36,14 +32,18 @@ class AppUser {
     required this.age,
     required this.height,
     required this.weight,
+    required this.gender,
     required this.isActive,
-    String? password,
     required this.profilePic,
     required this.goal,
-    required this.files,
     required this.events,
     required this.appointments,
-  }) : password = password ?? _generateRandomPassword();
+    DateTime? createdAtParam, 
+    DateTime? modifiedAtParam,
+    DateTime? deletedAtParam, 
+  })  : createdAt = createdAtParam ?? DateTime.now(),
+        modifiedAt = modifiedAtParam ?? DateTime.now(),
+        deletedAt = deletedAtParam;  
 
   factory AppUser.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -53,27 +53,32 @@ class AppUser {
       name: data['name'] ?? '',
       lastname: data['lastname'] ?? '',
       email: data['email'] ?? '',
-      birthday: data['birthday'] ?? Timestamp.now(),
+      birthday: data['birthday'] != null
+          ? (data['birthday'] as Timestamp).toDate()
+          : null,
       dni: data['dni']?.toString() ?? '',
       age: data['age'] ?? 0,
       height: data['height'] ?? 0,
       weight: data['weight'] ?? 0,
+      gender: data['gender'] ?? '',
       isActive: data['isActive'] ?? false,
-      password: data['password'] ?? _generateRandomPassword(),
       profilePic: data['profilePic'] ?? '',
       goal: data['goal'] ?? '',
-      files: (data['files'] as List?)
-              ?.map((e) => Map<String, Object?>.from(e as Map))
-              .toList() ??
-          [],
       events: (data['events'] as List?)
               ?.map((e) => Map<String, Object?>.from(e as Map))
-              .toList() ??
-          [],
+              .toList() ?? [],
       appointments: (data['appointments'] as List?)
               ?.map((e) => e as Timestamp)
-              .toList() ??
-          [],
+              .toList() ?? [],
+      createdAtParam: data['createdAt'] != null
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      modifiedAtParam: data['modifiedAt'] != null
+          ? (data['modifiedAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      deletedAtParam: data['deletedAt'] != null
+          ? (data['deletedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -82,18 +87,20 @@ class AppUser {
       'name': name,
       'lastname': lastname,
       'email': email,
-      'birthday': birthday,
+      'birthday': birthday != null ? Timestamp.fromDate(birthday!) : null,
       'dni': dni,
       'age': age,
       'height': height,
       'weight': weight,
+      'gender': gender,
       'isActive': isActive,
-      'password': password,
       'profilePic': profilePic,
       'goal': goal,
-      'files': files,
       'events': events,
       'appointments': appointments,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'modifiedAt': Timestamp.fromDate(modifiedAt),
+      'deletedAt': deletedAt != null ? Timestamp.fromDate(deletedAt!) : null, 
     };
   }
 }
