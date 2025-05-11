@@ -12,10 +12,8 @@ class AppUser {
   final bool isActive;
   final String profilePic;
   final String goal;
-
   final List<Map<String, Object?>> events;
   final List<Timestamp> appointments;
-
   final DateTime createdAt;
   final DateTime modifiedAt;
   final DateTime? deletedAt;
@@ -49,10 +47,9 @@ class AppUser {
       name: data['name'] ?? '',
       lastname: data['lastname'] ?? '',
       email: data['email'] ?? '',
-      birthday:
-          data['birthday'] != null
-              ? (data['birthday'] as Timestamp).toDate()
-              : null,
+      birthday: data['birthday'] != null
+          ? (data['birthday'] as Timestamp).toDate()
+          : null,
       height: data['height'] ?? 0,
       weight: data['weight'] ?? 0,
       gender: data['gender'] ?? '',

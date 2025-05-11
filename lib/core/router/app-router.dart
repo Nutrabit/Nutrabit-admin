@@ -18,7 +18,7 @@ import 'package:nutrabit_admin/presentation/screens/publicity/publicidades.dart'
 import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/pacientes',
+  initialLocation: '/login',
   routes: [
     GoRoute(path: '/', builder: (context, state) => Home()),
     GoRoute(path: '/login', builder: (context, state) => Login()),

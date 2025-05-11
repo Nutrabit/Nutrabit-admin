@@ -44,4 +44,14 @@ class AuthNotifier extends AsyncNotifier<void> {
     return false;
   }
 }
+
+Future<bool> logout() async {
+  try {
+    await FirebaseAuth.instance.signOut();
+    return true;
+  } catch(e){
+    print("Error al hacer logout: $e");
+    return false;
+  }
+}
 }

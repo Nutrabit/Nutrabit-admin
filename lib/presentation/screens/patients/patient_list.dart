@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/widgets/logout.dart';
 import '../../providers/user_provider.dart';
 import '../../../core/models/app_users.dart';
 
@@ -23,6 +24,7 @@ class PatientList extends ConsumerWidget {
               context.push('/pacientes/alta');
             },
           ),
+          Logout(),
         ],
       ),
       body: usersAsyncValue.when(
