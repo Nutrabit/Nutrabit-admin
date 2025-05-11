@@ -33,6 +33,15 @@ String generateRandomPassword({int length = 6}) {
   ).join();
 }
 
+
+extension StringCasingExtension on String {
+  
+  String capitalize() {
+    if (isEmpty) return "";
+    return this[0].toUpperCase() + substring(1);
+  }
+}
+
 Future<void> showCustomDialog({
   required BuildContext context,
   required String message,
