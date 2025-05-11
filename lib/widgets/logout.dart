@@ -12,23 +12,54 @@ class Logout extends ConsumerStatefulWidget {
 }
 
 class _LogoutState extends ConsumerState<Logout> {
+ void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('¿Cerrar sesión?'),
+          content: const Text('¿Estás segura/o de que querés cerrar sesión?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+            ),
+            TextButton(
+              child: const Text('Cerrar sesión'),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Cierra el diálogo
+                final result = await ref.read(authProvider.notifier).logout();
+                if (result == true) {
+                  if (mounted) context.go('/login');
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error al cerrar sesión')),
+                    );
+                  }
+                }
+              },
+              style: TextButton.styleFrom(
+                    backgroundColor: Color.fromRGBO(220, 96, 122, 1),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+            ),
+          ],
+        );
+      },
+    );
+}
   @override
   Widget build(BuildContext context) {
     return IconButton(
       icon: const FaIcon(FontAwesomeIcons.rightFromBracket),
       tooltip: 'Cerrar sesión',
-      onPressed: () {
-        final logout = ref.read(authProvider.notifier).logout().then((r) {
-          if (r == true) {
-            context.go('/login');
-          } else {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión')));
-          }
-          ;
-        });
-      },
+      onPressed: () => _confirmLogout(context),
     );
   }
 }
