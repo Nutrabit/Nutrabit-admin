@@ -120,9 +120,9 @@ class PatientRegistrationForm extends ConsumerWidget {
                   isLoading.value = true;
                   await createUser(
                     ref: ref,
-                    name: nameController.text.trim(),
-                    lastName: lastNameController.text.trim(),
-                    email: emailController.text.trim(),
+                    name: nameController.text.trim().toLowerCase(),
+                    lastName: lastNameController.text.trim().toLowerCase(),
+                    email: emailController.text.trim().toLowerCase(),
                     birthday: birthdateNotifier.value,
                     height: int.tryParse(heightController.text.trim()) ?? 0,
                     weight: int.tryParse(weightController.text.trim()) ?? 0,

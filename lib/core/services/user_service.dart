@@ -23,7 +23,6 @@ Future<void> createUser({
     lastname: lastName,
     email: email,
     birthday: birthday,
-    dni: '',
     height: height,
     weight: weight,
     gender: gender,
