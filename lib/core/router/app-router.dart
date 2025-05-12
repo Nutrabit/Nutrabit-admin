@@ -8,7 +8,7 @@ import 'package:nutrabit_admin/presentation/screens/login.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
-import 'package:nutrabit_admin/presentation/screens/patients/detallePaciente.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
@@ -31,7 +31,7 @@ final appRouter = GoRouter(
           path: ':id',
           builder:
               (context, state) =>
-                  DetallePaciente(id: state.pathParameters['id'] as String),
+                  PatientDetail(id: state.pathParameters['id'] as String),
           routes: [
             GoRoute(
               path: 'archivos',
