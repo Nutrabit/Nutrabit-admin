@@ -7,6 +7,6 @@ schema:
     postgresql:
       database: "fdcdb"
       cloudSql:
-        instanceId: "nutrabitadmin-fdc"
+        instanceId: "nutrabit-7a4ce"
       # schemaValidation: "COMPATIBLE"
 connectorDirs: ["./connector"]

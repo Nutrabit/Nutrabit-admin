@@ -1,21 +1,21 @@
 import 'package:go_router/go_router.dart';
-import 'package:nutrabit_admin/presentaciones/screens/calendario/calendario.dart';
-import 'package:nutrabit_admin/presentaciones/screens/calendario/detalleDiaCalendario.dart';
-import 'package:nutrabit_admin/presentaciones/screens/home.dart';
-import 'package:nutrabit_admin/presentaciones/screens/listaInteres/altaListaInteres.dart';
-import 'package:nutrabit_admin/presentaciones/screens/listaInteres/listaInteres.dart';
-import 'package:nutrabit_admin/presentaciones/screens/login.dart';
-import 'package:nutrabit_admin/presentaciones/screens/notificaciones/altaNotificacion.dart';
-import 'package:nutrabit_admin/presentaciones/screens/notificaciones/detalleNotificacion.dart';
-import 'package:nutrabit_admin/presentaciones/screens/notificaciones/notificaciones.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/altaPaciente.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/altaArchivosPaciente.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/detallePaciente.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/pacientes.dart';
-import 'package:nutrabit_admin/presentaciones/screens/pacientes/turnos.dart';
-import 'package:nutrabit_admin/presentaciones/screens/publicidades/altaPubli.dart';
-import 'package:nutrabit_admin/presentaciones/screens/publicidades/detallePubli.dart';
-import 'package:nutrabit_admin/presentaciones/screens/publicidades/publicidades.dart';
+import 'package:nutrabit_admin/presentation/screens/calendar/calendario.dart';
+import 'package:nutrabit_admin/presentation/screens/calendar/detalleDiaCalendario.dart';
+import 'package:nutrabit_admin/presentation/screens/home.dart';
+import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
+import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
+import 'package:nutrabit_admin/presentation/screens/login.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
+import 'package:nutrabit_admin/presentation/screens/publicity/altaPubli.dart';
+import 'package:nutrabit_admin/presentation/screens/publicity/detallePubli.dart';
+import 'package:nutrabit_admin/presentation/screens/publicity/publicidades.dart';
+import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -24,28 +24,27 @@ final appRouter = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => Login()),
     GoRoute(
       path: '/pacientes',
-      builder: (context, state) => Pacientes(),
+      builder: (context, state) => PatientList(),
       routes: [
-        GoRoute(path: '/alta', builder: (context, state) => AltaPaciente()),
+        GoRoute(path: '/alta', builder: (context, state) => PatientRegistration()),
         GoRoute(
-          path: '/:id',
+          path: ':id',
           builder:
               (context, state) =>
-                  DetallePaciente(id: state.pathParameters['id'] as String),
+                  PatientDetail(id: state.pathParameters['id'] as String),
           routes: [
             GoRoute(
-              path: '/archivos',
-              builder:
-                  (context, state) => AltaArchivosPaciente(
-                    id: state.pathParameters['id'] as String,
-                  ),
+              path: 'archivos',
+              builder: (context, state) => AttachFilesScreen(
+                patientId: state.pathParameters['id'] as String,
+              ),
             ),
             GoRoute(
-              path: '/calendario',
+              path: 'calendario',
               builder: (context, state) => Calendario(),
               routes: [
                 GoRoute(
-                  path: '/:fecha',
+                  path: ':fecha',
                   builder:
                       (context, state) => DetalleDiaCalendario(
                         fecha: state.pathParameters['fecha'] as String,
@@ -53,7 +52,7 @@ final appRouter = GoRouter(
                 ),
               ],
             ),
-            GoRoute(path: '/turnos', builder: (context, state) => Turnos()),
+            GoRoute(path: 'turnos', builder: (context, state) => Turnos()),
           ],
         ),
       ],
@@ -63,12 +62,12 @@ final appRouter = GoRouter(
       builder: (context, state) => Publicidades(),
       routes: [
         GoRoute(
-          path: '/:id',
+          path: ':id',
           builder:
               (context, state) =>
                   DetallePublicidad(id: state.pathParameters['id'] as String),
         ),
-        GoRoute(path: '/alta', builder: (context, state) => AltaPublicidad()),
+        GoRoute(path: 'alta', builder: (context, state) => AltaPublicidad()),
       ],
     ),
     GoRoute(
@@ -76,19 +75,19 @@ final appRouter = GoRouter(
       builder: (context, state) => Notificaciones(),
       routes: [
         GoRoute(
-          path: '/:id',
+          path: ':id',
           builder:
               (context, state) =>
                   DetalleNotificacion(id: state.pathParameters['id'] as String),
         ),
-        GoRoute(path: '/alta', builder: (context, state) => AltaNotificacion()),
+        GoRoute(path: 'alta', builder: (context, state) => AltaNotificacion()),
       ],
     ),
     GoRoute(
-      path: '/listaInteres',
+      path: 'listaInteres',
       builder: (context, state) => ListaInteres(),
       routes: [
-        GoRoute(path: '/alta', builder: (context, state) => AltaListaInteres()),
+        GoRoute(path: 'alta', builder: (context, state) => AltaListaInteres()),
       ],
     ),
   ],
