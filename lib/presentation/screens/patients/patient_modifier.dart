@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nutrabit_admin/core/utils/decorations.dart';
 
 class PatientModifier extends StatefulWidget {
   final String id;
@@ -52,7 +53,7 @@ class _PatientModifierState extends State<PatientModifier> {
         'vegetariano': _vegetarian,
         'vegano': _vegan,
         'modifiedAt': FieldValue.serverTimestamp(),
-        'deletedAt': null, // si deseas hacer borrado lógico en el futuro
+        'deletedAt': null,
       });
 
       _showSuccessPopup();
@@ -177,7 +178,7 @@ class _PatientModifierState extends State<PatientModifier> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: activity.contains(_selectedActivity) ? _selectedActivity : null,
-                  decoration: _inputDecoration('Nivel de actividad'),
+                  decoration: inputDecoration('Nivel de actividad'),
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black87,
@@ -225,24 +226,7 @@ class _PatientModifierState extends State<PatientModifier> {
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      hintText: label,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
-      ),
-    );
-  }
+  
 
   Widget _buildTextField(TextEditingController controller, String label, {TextInputType? keyboardType}) {
     return Padding(
@@ -255,7 +239,7 @@ class _PatientModifierState extends State<PatientModifier> {
           color: Colors.black87,
           fontWeight: FontWeight.w600,
         ),
-        decoration: _inputDecoration(label),
+        decoration: inputDecoration(label),
       ),
     );
   }
@@ -263,7 +247,7 @@ class _PatientModifierState extends State<PatientModifier> {
   Widget _buildDropdownSexo() {
     return DropdownButtonFormField<String>(
       value: validGender.contains(_selectedSex) ? _selectedSex : null,
-      decoration: _inputDecoration('Sexo'),
+      decoration: inputDecoration('Sexo'),
       style: const TextStyle(
         fontSize: 14,
         color: Colors.black87,
@@ -297,7 +281,7 @@ class _PatientModifierState extends State<PatientModifier> {
                 ? "${_birthDay!.day.toString().padLeft(2, '0')}/${_birthDay!.month.toString().padLeft(2, '0')}/${_birthDay!.year}"
                 : '',
           ),
-          decoration: _inputDecoration('Fecha de nacimiento'),
+          decoration: inputDecoration('Fecha de nacimiento'),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'patient_modifier.dart';
 
 class PatientDetail extends StatelessWidget {
@@ -7,26 +8,16 @@ class PatientDetail extends StatelessWidget {
 
   const PatientDetail({Key? key, required this.id}) : super(key: key);
 
-  Future<void> updateUserState(String id, bool nuevoEstado) async {
+  Future<void> updateUserState(String id, bool newState) async {
     try {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(id)
-          .update({'isActive': nuevoEstado});
-      print('Usuario actualizado (isActive: $nuevoEstado)');
+          .update({'isActive': newState});
+      print('Usuario actualizado (isActive: $newState)');
     } catch (e) {
       print('Error al actualizar el estado del usuario: $e');
     }
-  }
-
-  int calculateAge(DateTime birthday) {
-    final now = DateTime.now();
-    int age = now.year - birthday.year;
-    if (now.month < birthday.month ||
-        (now.month == birthday.month && now.day < birthday.day)) {
-      age--;
-    }
-    return age;
   }
 
   @override
@@ -205,7 +196,7 @@ class PatientDetail extends StatelessWidget {
                                                 return AlertDialog(
                                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                                                   content: SizedBox(
-                                                    width: 250, // Ancho personalizado
+                                                    width: 250,
                                                     child: Column(
                                                       mainAxisSize: MainAxisSize.min,
                                                       children: [
@@ -241,7 +232,6 @@ class PatientDetail extends StatelessWidget {
                                                     ),
                                                   ),
                                                 );
-
                                               },
                                             );
                                           },
@@ -266,14 +256,11 @@ class PatientDetail extends StatelessWidget {
                             );
                           },
                         );
-
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 216, 95, 135),
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: Text(
                         isActive ? 'Deshabilitar Cuenta' : 'Habilitar Cuenta',
@@ -293,9 +280,7 @@ class PatientDetail extends StatelessWidget {
 
   Widget buildButton(BuildContext context, String title) {
     return InkWell(
-      onTap: () {
-        
-      },
+      onTap: () {},
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -306,8 +291,7 @@ class PatientDetail extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title,
-                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
             const Icon(Icons.arrow_forward_ios, size: 16),
           ],
         ),
