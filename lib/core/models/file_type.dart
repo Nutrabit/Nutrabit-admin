@@ -2,7 +2,8 @@ enum FileType {
   SHOPPING_LIST,
   EXERCISE_PLAN,
   MEAL_PLAN,
-  RECOMMENDATIONS
+  RECOMMENDATIONS,
+  IN_BODY
 }
 
 extension FileTypeExtension on FileType {
@@ -16,6 +17,8 @@ extension FileTypeExtension on FileType {
         return "Plan de Alimentación";
       case FileType.RECOMMENDATIONS:
         return "Recomendaciones";
+      case FileType.IN_BODY:
+        return "InBody";
     }
   }
 }
