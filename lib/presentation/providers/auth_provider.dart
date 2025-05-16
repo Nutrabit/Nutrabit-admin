@@ -10,8 +10,7 @@ final authProvider = AsyncNotifierProvider<AuthNotifier, void>(
 class AuthNotifier extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {
-    // TODO: implement build
-    throw UnimplementedError();
+    return null;
   }
 
   FirebaseFirestore db = FirebaseFirestore.instance;
@@ -19,13 +18,14 @@ class AuthNotifier extends AsyncNotifier<void> {
   Future<bool?> login(String emailAddress, String password) async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailAddress,
-        password: password,
+        email: emailAddress.trim(),
+        password: password.trim(),
       );
 
       String uid = credential.user!.uid;
       return await isAdmin(uid);
     } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: code=${e.code}, message=${e.message}');
       if (e.code == 'user-not-found') {
         print('No user found for that email.');
       } else if (e.code == 'wrong-password') {
@@ -36,22 +36,61 @@ class AuthNotifier extends AsyncNotifier<void> {
   }
 
   Future<bool> isAdmin(String uid) async {
-  try {
-    final doc = await db.collection("admin").doc(uid).get();
-    return doc.exists; 
-  } catch (e) {
-    print("Error al verificar admin: $e");
-    return false;
+    try {
+      final doc = await db.collection("admin").doc(uid).get();
+      return doc.exists;
+    } catch (e) {
+      print("Error al verificar admin: $e");
+      return false;
+    }
   }
-}
 
-Future<bool> logout() async {
-  try {
-    await FirebaseAuth.instance.signOut();
-    return true;
-  } catch(e){
-    print("Error al hacer logout: $e");
-    return false;
+  Future<bool> logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      return true;
+    } catch (e) {
+      print("Error al hacer logout: $e");
+      return false;
+    }
   }
-}
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    state = const AsyncLoading();
+    try {
+      if (await isAdminByEmail(email)) {
+        // Caso admin válido
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email.trim());
+        state = const AsyncData(null);
+      } else {
+        // 🔥 Lanzamos un FirebaseAuthException
+        throw FirebaseAuthException(
+          code: 'not-admin',
+          message: 'El email no está registrado como administrador.',
+        );
+      }
+    } on FirebaseAuthException catch (e, st) {
+      // 🔍 Aquí cae el 'not-admin' o cualquier otro FirebaseAuthException
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<bool> isAdminByEmail(String email) async {
+    try {
+      // 1️⃣ Consulta: busca en 'admin' donde el campo 'email' sea igual
+      final snapshot =
+          await db
+              .collection('admin')
+              .where('email', isEqualTo: email.trim())
+              .limit(1) // sólo necesitamos saber si hay al menos uno
+              .get();
+
+      // 2️⃣ Devuelve true si encontramos al menos un doc
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      // En caso de error (p.ej. problemas de red), loguea y devuelve false
+      print("Error al verificar admin por email: $e");
+      return false;
+    }
+  }
 }

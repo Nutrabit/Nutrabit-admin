@@ -8,6 +8,7 @@ import 'package:nutrabit_admin/presentation/screens/login.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
+import 'package:nutrabit_admin/presentation/screens/password/forgot_password.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
@@ -90,5 +91,6 @@ final appRouter = GoRouter(
         GoRoute(path: 'alta', builder: (context, state) => AltaListaInteres()),
       ],
     ),
+    GoRoute(path: '/recuperar-contrasena', builder: (context, state) => ForgotPassword()),
   ],
 );
