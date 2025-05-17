@@ -45,15 +45,22 @@ class PatientDetail extends StatelessWidget {
         final email = data['email'] ?? '-';
         final weight = data['weight']?.toString() ?? '-';
         final height = data['height']?.toString() ?? '-';
-        final diet = data['dieta'] ?? '-';
         final isActive = data['isActive'] ?? true;
         final profilePic = data['profilePic'];
 
-        final birthdayTimestamp = data['birthday'] as Timestamp?;
-        String age = '-';
-        if (birthdayTimestamp != null) {
-          age = calculateAge(birthdayTimestamp.toDate()).toString();
+        final birthdayData = data['birthday'];
+        DateTime? birthdayDate;
+        if (birthdayData is Timestamp) {
+          birthdayDate = birthdayData.toDate();
+        } else if (birthdayData is String) {
+          birthdayDate = DateTime.tryParse(birthdayData);
         }
+
+        String age = '-';
+        if (birthdayDate != null) {
+          age = calculateAge(birthdayDate).toString();
+        }
+
 
         return Scaffold(
           appBar: AppBar(
@@ -124,7 +131,7 @@ class PatientDetail extends StatelessWidget {
                                     Text('$weight kg / $height cm',
                                         style: const TextStyle(color: Colors.black54)),
                                     const Divider(),
-                                    Text(diet, style: const TextStyle(color: Colors.black54)),
+                                    
                                   ],
                                 ),
                               ),
@@ -258,7 +265,7 @@ class PatientDetail extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 216, 95, 135),
+                        backgroundColor: const Color(0xFFDC607A),
                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -285,7 +292,7 @@ class PatientDetail extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.pink.shade300),
+          border: Border.all(color: Color(0xFFDC607A),),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

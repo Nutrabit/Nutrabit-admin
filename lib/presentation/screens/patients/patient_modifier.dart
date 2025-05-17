@@ -19,9 +19,9 @@ class _PatientModifierState extends State<PatientModifier> {
   final _weightController = TextEditingController();
 
   final List<String> validGender = ['Masculino', 'Femenino', 'Otro'];
-  final List<String> activity = ['Sedentario', 'Ligero', 'Moderado', 'Activo'];
+  
 
-  String? _selectedSex;
+  String? _selectedGender;
   String? _selectedActivity;
   DateTime? _birthDay;
   bool _vegetarian = false;
@@ -47,11 +47,11 @@ class _PatientModifierState extends State<PatientModifier> {
         'email': _emailController.text,
         'height': int.tryParse(_heightController.text.trim()) ?? 0,
         'weight': int.tryParse(_weightController.text.trim()) ?? 0,
-        'sexo': _selectedSex ?? '',
-        'birthday': _birthDay,
-        'actividad': _selectedActivity ?? '',
-        'vegetariano': _vegetarian,
-        'vegano': _vegan,
+        'gender': _selectedGender ?? '',
+        'birthday': _birthDay != null ? Timestamp.fromDate(_birthDay!) : null,
+        'activity': _selectedActivity ?? '',
+        'vegetarian': _vegetarian,
+        'vegan': _vegan,
         'modifiedAt': FieldValue.serverTimestamp(),
         'deletedAt': null,
       });
@@ -133,11 +133,8 @@ class _PatientModifierState extends State<PatientModifier> {
           _emailController.text = data['email'] ?? '';
           _heightController.text = data['height']?.toString() ?? '';
           _weightController.text = data['weight']?.toString() ?? '';
-          _selectedSex = (data['sexo'] ?? '').toString().isNotEmpty ? data['sexo'] : null;
+          _selectedGender = (data['gender'] ?? '').toString().isNotEmpty ? data['gender'] : null;
           _birthDay = data['birthday']?.toDate();
-          _selectedActivity = data['actividad'] ?? 'Sedentario';
-          _vegetarian = data['vegetariano'] ?? false;
-          _vegan = data['vegano'] ?? false;
 
           dataLoaded = true;
         }
@@ -175,38 +172,14 @@ class _PatientModifierState extends State<PatientModifier> {
                     Expanded(child: _buildTextField(_weightController, 'Peso (kg)', keyboardType: TextInputType.number)),
                   ],
                 ),
+                const SizedBox(height: 12),              
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: activity.contains(_selectedActivity) ? _selectedActivity : null,
-                  decoration: inputDecoration('Nivel de actividad'),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  items: activity.map((nivel) => DropdownMenuItem(
-                    value: nivel,
-                    child: Text(nivel),
-                  )).toList(),
-                  onChanged: (value) => setState(() => _selectedActivity = value),
-                ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  title: const Text('Vegetariano/a'),
-                  value: _vegetarian,
-                  onChanged: (value) => setState(() => _vegetarian = value),
-                ),
-                SwitchListTile(
-                  title: const Text('Vegano/a'),
-                  value: _vegan,
-                  onChanged: (value) => setState(() => _vegan = value),
-                ),
                 const SizedBox(height: 12),
                 Center(
                   child: ElevatedButton(
                     onPressed: _updatePatient,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pinkAccent,
+                      backgroundColor: const Color(0xFFDC607A),
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -246,7 +219,7 @@ class _PatientModifierState extends State<PatientModifier> {
 
   Widget _buildDropdownSexo() {
     return DropdownButtonFormField<String>(
-      value: validGender.contains(_selectedSex) ? _selectedSex : null,
+      value: validGender.contains(_selectedGender) ? _selectedGender : null,
       decoration: inputDecoration('Sexo'),
       style: const TextStyle(
         fontSize: 14,
@@ -257,7 +230,7 @@ class _PatientModifierState extends State<PatientModifier> {
         value: sexo,
         child: Text(sexo),
       )).toList(),
-      onChanged: (value) => setState(() => _selectedSex = value),
+      onChanged: (value) => setState(() => _selectedGender = value),
     );
   }
 

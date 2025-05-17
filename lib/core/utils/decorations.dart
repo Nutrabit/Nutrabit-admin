@@ -24,15 +24,15 @@ InputDecoration textFieldDecoration(String label) {
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
+      borderSide: const BorderSide(color: Color(0xFFDC607A)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
+      borderSide: const BorderSide(color: Color(0xFFDC607A)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
+      borderSide: const BorderSide(color: Color(0xFFDC607A)),
     ),
   );
 }
