@@ -20,7 +20,7 @@ import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.da
 final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => Home()),
+    GoRoute(path: '/', builder: (context, state) => HomePage()),
     GoRoute(path: '/login', builder: (context, state) => Login()),
     GoRoute(
       path: '/pacientes',
