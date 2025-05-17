@@ -1,44 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
+import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
 
-class PatientDetail extends StatelessWidget {
+class PatientDetail extends ConsumerWidget {
   final String id;
 
-  const PatientDetail({Key? key, required this.id}) : super(key: key);
-
-  Future<void> updateUserState(String id, bool newState) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(id)
-          .update({'isActive': newState});
-      print('Usuario actualizado (isActive: $newState)');
-    } catch (e) {
-      print('Error al actualizar el estado del usuario: $e');
-    }
-  }
+  const PatientDetail({super.key, required this.id});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(id).snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userStreamProvider(id));
 
-        if (!snapshot.hasData || !snapshot.data!.exists) {
+    return userAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text('Error al cargar paciente: $error')),
+      ),
+      data: (snapshot) {
+        if (!snapshot.exists) {
           return Scaffold(
             appBar: AppBar(),
             body: const Center(child: Text('Paciente no encontrado')),
           );
         }
 
-        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final data = snapshot.data() as Map<String, dynamic>;
         final name = data['name'] ?? 'Sin nombre';
         final lastname = data['lastname'] ?? '';
         final completeName = '$name $lastname';
@@ -60,7 +52,6 @@ class PatientDetail extends StatelessWidget {
         if (birthdayDate != null) {
           age = calculateAge(birthdayDate).toString();
         }
-
 
         return Scaffold(
           appBar: AppBar(
@@ -131,7 +122,6 @@ class PatientDetail extends StatelessWidget {
                                     Text('$weight kg / $height cm',
                                         style: const TextStyle(color: Colors.black54)),
                                     const Divider(),
-                                    
                                   ],
                                 ),
                               ),
@@ -196,7 +186,8 @@ class PatientDetail extends StatelessWidget {
                                         OutlinedButton(
                                           onPressed: () async {
                                             Navigator.of(dialogContext).pop();
-                                            await updateUserState(id, !isActive);
+                                            await ref.read(userProvider.notifier).updateUserState(id, !isActive);
+
                                             showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
@@ -292,7 +283,7 @@ class PatientDetail extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFFDC607A),),
+          border: Border.all(color: Color(0xFFDC607A)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
