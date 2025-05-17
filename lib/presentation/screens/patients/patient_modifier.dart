@@ -132,8 +132,8 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
           _nameController.text = data['name'] ?? '';
           _lastNameController.text = data['lastname'] ?? '';
           _emailController.text = data['email'] ?? '';
-_heightController.text = (data['height'] != null && data['height'] != 0) ? data['height'].toString() : '';
-_weightController.text = (data['weight'] != null && data['weight'] != 0) ? data['weight'].toString() : '';
+          _heightController.text = (data['height'] != null && data['height'] != 0) ? data['height'].toString() : '';
+          _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data['weight'].toString() : '';
           _selectedGender = (data['gender'] ?? '').toString().isNotEmpty ? data['gender'] : null;
           _birthDay = data['birthday']?.toDate();
           _selectedActivity = data['activity'];
@@ -157,7 +157,7 @@ _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data[
                 const SizedBox(height: 16),
                 _buildTextField(_nameController, 'Nombre'),
                 _buildTextField(_lastNameController, 'Apellido'),
-                _buildTextField(_emailController, 'Correo', keyboardType: TextInputType.emailAddress),
+                _buildTextField(_emailController, 'Email', keyboardType: TextInputType.emailAddress),
                 Row(
                   children: [
                     Expanded(child: _buildDatePicker(context)),
@@ -168,9 +168,23 @@ _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data[
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _buildTextField(_heightController, 'Altura (cm)', keyboardType: TextInputType.number)),
+                    Expanded(
+                      child: _buildTextField(
+                        _heightController,
+                        'Altura',
+                        keyboardType: TextInputType.number,
+                        suffix: 'cm',
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildTextField(_weightController, 'Peso (kg)', keyboardType: TextInputType.number)),
+                    Expanded(
+                      child: _buildTextField(
+                        _weightController,
+                        'Peso',
+                        keyboardType: TextInputType.number,
+                        suffix: 'kg',
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -198,7 +212,8 @@ _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data[
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, {TextInputType? keyboardType}) {
+  Widget _buildTextField(TextEditingController controller, String label,
+      {TextInputType? keyboardType, String? suffix}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -209,7 +224,7 @@ _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data[
           color: Colors.black87,
           fontWeight: FontWeight.w600,
         ),
-        decoration: inputDecoration(label),
+        decoration: inputDecoration(label, suffix: suffix),
       ),
     );
   }
@@ -251,7 +266,7 @@ _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data[
                 ? "${_birthDay!.day.toString().padLeft(2, '0')}/${_birthDay!.month.toString().padLeft(2, '0')}/${_birthDay!.year}"
                 : '',
           ),
-          decoration: inputDecoration('Fecha de nacimiento'),
+          decoration: inputDecoration('Nacimiento'),
         ),
       ),
     );
