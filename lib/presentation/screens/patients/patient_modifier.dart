@@ -132,8 +132,8 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
           _nameController.text = data['name'] ?? '';
           _lastNameController.text = data['lastname'] ?? '';
           _emailController.text = data['email'] ?? '';
-_heightController.text = (data['height'] != null && data['height'] != 0) ? data['height'].toString() : '';
-_weightController.text = (data['weight'] != null && data['weight'] != 0) ? data['weight'].toString() : '';
+          _heightController.text = (data['height'] != null && data['height'] != 0) ? data['height'].toString() : '';
+          _weightController.text = (data['weight'] != null && data['weight'] != 0) ? data['weight'].toString() : '';
           _selectedGender = (data['gender'] ?? '').toString().isNotEmpty ? data['gender'] : null;
           _birthDay = data['birthday']?.toDate();
           _selectedActivity = data['activity'];
