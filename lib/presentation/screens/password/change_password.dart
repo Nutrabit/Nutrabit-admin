@@ -1,0 +1,155 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
+
+class ChangePassword extends ConsumerStatefulWidget {
+  const ChangePassword({super.key});
+
+  @override
+  ConsumerState<ChangePassword> createState() => _ChangePasswordState();
+}
+
+class _ChangePasswordState extends ConsumerState<ChangePassword> {
+  final TextEditingController _currentController = TextEditingController();
+  final TextEditingController _newController = TextEditingController();
+  final TextEditingController _repeatController = TextEditingController();
+  bool _isLoading = false;
+
+  // @override
+  // void dispose() {
+  //   _currentController.dispose();
+  //   _newController.dispose();
+  //   _repeatController.dispose();
+  //   super.dispose();
+  // }
+
+  void changePassword() {
+    final current = _currentController.text.trim();
+    final next = _newController.text.trim();
+    final repeat = _repeatController.text.trim();
+
+    if (current.isEmpty || next.isEmpty || repeat.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, complete todos los campos.')),
+      );
+    } else {
+      // Dispara la actualización de contraseña a través del provider
+      setState(() => _isLoading = true);
+      ref
+          .read(authProvider.notifier)
+          .updatePassword(
+            currentPassword: current,
+            newPassword: next,
+            repeatPassword: repeat,
+          )
+          .whenComplete(() {
+            setState(() => _isLoading = false);
+          });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Escucha el estado de carga/éxito/error del provider
+    ref.listen<AsyncValue<void>>(authProvider, (prev, next) {
+      next.when(
+        loading: () {},
+        data: (_) {
+          showDialog(
+            context: context,
+            builder:
+                (_) => AlertDialog(
+                  title: const Text('¡Contraseña actualizada correctamente!'),
+                  content: const Text('Por favor, vuelva a iniciar sesión.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => {context.go('/login')},
+                      style: TextButton.styleFrom(
+                        backgroundColor: Color(0xFFD7F9DE),
+                        foregroundColor: Color(0xFF606060),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Aceptar'),
+                    ),
+                  ],
+                ),
+          );
+        },
+        error: (err, _) {
+          final msg =
+              err is FirebaseAuthException
+                  ? (err.message ?? err.code)
+                  : err.toString();
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(msg)));
+        },
+      );
+    });
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Cambiar contraseña')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _currentController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Contraseña actual',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _newController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Nueva contraseña',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _repeatController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Repetir contraseña',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _isLoading ? null : changePassword,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child:
+                  _isLoading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                      : const Text('Aceptar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
