@@ -18,21 +18,19 @@ InputDecoration textFieldDecoration(String label) {
     );
   }
 
-  InputDecoration inputDecoration(String label) {
+  InputDecoration inputDecoration(String label, {String? suffix}) {
   return InputDecoration(
-    hintText: label,
+    labelText: label,
+    labelStyle: const TextStyle(fontSize: 14, color: Colors.grey),
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFDC607A)),
+    focusedBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Color(0xFFDC607A), width: 2.0),
+      borderRadius: BorderRadius.circular(8),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFDC607A)),
+      borderSide: const BorderSide(color: Color(0xFFDC607A), width: 1.5),
+      borderRadius: BorderRadius.circular(8),
     ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFDC607A)),
-    ),
+    suffixText: suffix, // Aquí se añade el sufijo opcional
   );
 }
