@@ -35,7 +35,7 @@ class _LoginState extends ConsumerState<Login> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
                   image: DecorationImage(
-                    image: AssetImage('../assets/img/logoInicio.png'),
+                    image: AssetImage('assets/img/logoInicio.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -85,7 +85,7 @@ class _LoginState extends ConsumerState<Login> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      context.go('/recuperar-contrasena');
+                      context.go('/recuperar-clave');
                     },
                     child: Text(
                       '¿Olvidaste tu contraseña?',

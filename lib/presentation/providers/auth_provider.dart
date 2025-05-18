@@ -63,21 +63,19 @@ class AuthNotifier extends AsyncNotifier<void> {
         await FirebaseAuth.instance.sendPasswordResetEmail(email: email.trim());
         state = const AsyncData(null);
       } else {
-        // 🔥 Lanzamos un FirebaseAuthException
         throw FirebaseAuthException(
           code: 'not-admin',
           message: 'El email no está registrado como administrador.',
         );
       }
     } on FirebaseAuthException catch (e, st) {
-      // 🔍 Aquí cae el 'not-admin' o cualquier otro FirebaseAuthException
       state = AsyncError(e, st);
     }
   }
 
   Future<bool> isAdminByEmail(String email) async {
     try {
-      // 1️⃣ Consulta: busca en 'admin' donde el campo 'email' sea igual
+      // busca en 'admin' donde el campo 'email' sea igual
       final snapshot =
           await db
               .collection('admin')
@@ -85,10 +83,9 @@ class AuthNotifier extends AsyncNotifier<void> {
               .limit(1) // sólo necesitamos saber si hay al menos uno
               .get();
 
-      // 2️⃣ Devuelve true si encontramos al menos un doc
+      // Devuelve true si encontramos al menos un admin con ese email
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      // En caso de error (p.ej. problemas de red), loguea y devuelve false
       print("Error al verificar admin por email: $e");
       return false;
     }
@@ -137,7 +134,7 @@ class AuthNotifier extends AsyncNotifier<void> {
         logout();
       }
     } on FirebaseAuthException catch (e, st) {
-      // Aquí interceptamos los códigos y volvemos a emitir
+      // se interceptan los códigos y volvemos a emitir
       String message;
       switch (e.code) {
         case 'invalid-credential':

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nutrabit_admin/core/utils/decorations.dart';
+import 'package:nutrabit_admin/presentation/providers/user_provider.dart';
 
-class PatientModifier extends StatefulWidget {
+class PatientModifier extends ConsumerStatefulWidget {
   final String id;
 
-  const PatientModifier({Key? key, required this.id}) : super(key: key);
+  const PatientModifier({super.key, required this.id});
 
   @override
-  State<PatientModifier> createState() => _PatientModifierState();
+  ConsumerState<PatientModifier> createState() => _PatientModifierState();
 }
 
-class _PatientModifierState extends State<PatientModifier> {
+class _PatientModifierState extends ConsumerState<PatientModifier> {
   final _nameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -18,13 +21,10 @@ class _PatientModifierState extends State<PatientModifier> {
   final _weightController = TextEditingController();
 
   final List<String> validGender = ['Masculino', 'Femenino', 'Otro'];
-  final List<String> activity = ['Sedentario', 'Ligero', 'Moderado', 'Activo'];
 
-  String? _selectedSex;
+  String? _selectedGender;
   String? _selectedActivity;
   DateTime? _birthDay;
-  bool _vegetarian = false;
-  bool _vegan = false;
 
   bool dataLoaded = false;
 
@@ -40,28 +40,28 @@ class _PatientModifierState extends State<PatientModifier> {
 
   Future<void> _updatePatient() async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(widget.id).update({
-        'name': _nameController.text,
-        'lastname': _lastNameController.text,
-        'email': _emailController.text,
-        'height': int.tryParse(_heightController.text.trim()) ?? 0,
-        'weight': int.tryParse(_weightController.text.trim()) ?? 0,
-        'sexo': _selectedSex ?? '',
-        'birthday': _birthDay,
-        'actividad': _selectedActivity ?? '',
-        'vegetariano': _vegetarian,
-        'vegano': _vegan,
-        'modifiedAt': FieldValue.serverTimestamp(),
-        'deletedAt': null, // si deseas hacer borrado lógico en el futuro
-      });
+      await ref.read(userProvider.notifier).updatePatient(
+        id: widget.id,
+        name: _nameController.text,
+        lastname: _lastNameController.text,
+        email: _emailController.text,
+        height: int.tryParse(_heightController.text.trim()) ?? 0,
+        weight: int.tryParse(_weightController.text.trim()) ?? 0,
+        gender: _selectedGender ?? '',
+        birthday: _birthDay != null ? Timestamp.fromDate(_birthDay!) : null,
+        activity: _selectedActivity ?? '',
+      );
 
       _showSuccessPopup();
     } catch (e) {
       print('Error al actualizar paciente: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar paciente: $e')),
+      );
     }
   }
 
-    void _showSuccessPopup() {
+  void _showSuccessPopup() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -113,31 +113,30 @@ class _PatientModifierState extends State<PatientModifier> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(widget.id).snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
+    final userSnapshot = ref.watch(userStreamProvider(widget.id));
 
-        if (!snapshot.hasData || !snapshot.data!.exists) {
+    return userSnapshot.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text('Error: $error')),
+      ),
+      data: (doc) {
+        if (!doc.exists) {
           return Scaffold(appBar: AppBar(), body: const Center(child: Text('Paciente no encontrado')));
         }
 
-        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final data = doc.data() as Map<String, dynamic>;
 
         if (!dataLoaded) {
           _nameController.text = data['name'] ?? '';
           _lastNameController.text = data['lastname'] ?? '';
           _emailController.text = data['email'] ?? '';
-          _heightController.text = data['height']?.toString() ?? '';
-          _weightController.text = data['weight']?.toString() ?? '';
-          _selectedSex = (data['sexo'] ?? '').toString().isNotEmpty ? data['sexo'] : null;
+_heightController.text = (data['height'] != null && data['height'] != 0) ? data['height'].toString() : '';
+_weightController.text = (data['weight'] != null && data['weight'] != 0) ? data['weight'].toString() : '';
+          _selectedGender = (data['gender'] ?? '').toString().isNotEmpty ? data['gender'] : null;
           _birthDay = data['birthday']?.toDate();
-          _selectedActivity = data['actividad'] ?? 'Sedentario';
-          _vegetarian = data['vegetariano'] ?? false;
-          _vegan = data['vegano'] ?? false;
-
+          _selectedActivity = data['activity'];
           dataLoaded = true;
         }
 
@@ -163,7 +162,7 @@ class _PatientModifierState extends State<PatientModifier> {
                   children: [
                     Expanded(child: _buildDatePicker(context)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildDropdownSexo()),
+                    Expanded(child: _buildDropdownGender()),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -175,37 +174,11 @@ class _PatientModifierState extends State<PatientModifier> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: activity.contains(_selectedActivity) ? _selectedActivity : null,
-                  decoration: _inputDecoration('Nivel de actividad'),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  items: activity.map((nivel) => DropdownMenuItem(
-                    value: nivel,
-                    child: Text(nivel),
-                  )).toList(),
-                  onChanged: (value) => setState(() => _selectedActivity = value),
-                ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  title: const Text('Vegetariano/a'),
-                  value: _vegetarian,
-                  onChanged: (value) => setState(() => _vegetarian = value),
-                ),
-                SwitchListTile(
-                  title: const Text('Vegano/a'),
-                  value: _vegan,
-                  onChanged: (value) => setState(() => _vegan = value),
-                ),
-                const SizedBox(height: 12),
                 Center(
                   child: ElevatedButton(
                     onPressed: _updatePatient,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pinkAccent,
+                      backgroundColor: const Color(0xFFDC607A),
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -225,25 +198,6 @@ class _PatientModifierState extends State<PatientModifier> {
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
-    return InputDecoration(
-      hintText: label,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color.fromARGB(255, 224, 76, 158)),
-      ),
-    );
-  }
-
   Widget _buildTextField(TextEditingController controller, String label, {TextInputType? keyboardType}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -255,15 +209,15 @@ class _PatientModifierState extends State<PatientModifier> {
           color: Colors.black87,
           fontWeight: FontWeight.w600,
         ),
-        decoration: _inputDecoration(label),
+        decoration: inputDecoration(label),
       ),
     );
   }
 
-  Widget _buildDropdownSexo() {
+  Widget _buildDropdownGender() {
     return DropdownButtonFormField<String>(
-      value: validGender.contains(_selectedSex) ? _selectedSex : null,
-      decoration: _inputDecoration('Sexo'),
+      value: validGender.contains(_selectedGender) ? _selectedGender : null,
+      decoration: inputDecoration('Sexo'),
       style: const TextStyle(
         fontSize: 14,
         color: Colors.black87,
@@ -273,7 +227,7 @@ class _PatientModifierState extends State<PatientModifier> {
         value: sexo,
         child: Text(sexo),
       )).toList(),
-      onChanged: (value) => setState(() => _selectedSex = value),
+      onChanged: (value) => setState(() => _selectedGender = value),
     );
   }
 
@@ -297,7 +251,7 @@ class _PatientModifierState extends State<PatientModifier> {
                 ? "${_birthDay!.day.toString().padLeft(2, '0')}/${_birthDay!.month.toString().padLeft(2, '0')}/${_birthDay!.year}"
                 : '',
           ),
-          decoration: _inputDecoration('Fecha de nacimiento'),
+          decoration: inputDecoration('Fecha de nacimiento'),
         ),
       ),
     );

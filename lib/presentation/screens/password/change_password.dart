@@ -16,14 +16,9 @@ class _ChangePasswordState extends ConsumerState<ChangePassword> {
   final TextEditingController _newController = TextEditingController();
   final TextEditingController _repeatController = TextEditingController();
   bool _isLoading = false;
-
-  // @override
-  // void dispose() {
-  //   _currentController.dispose();
-  //   _newController.dispose();
-  //   _repeatController.dispose();
-  //   super.dispose();
-  // }
+  bool currentPasswordVisible = false;
+  bool nextPasswordVisible = false;
+  bool repeatPasswordVisible = false;
 
   void changePassword() {
     final current = _currentController.text.trim();
@@ -100,39 +95,76 @@ class _ChangePasswordState extends ConsumerState<ChangePassword> {
           children: [
             TextField(
               controller: _currentController,
-              obscureText: true,
-              decoration: const InputDecoration(
+              obscureText: !currentPasswordVisible,
+              decoration: InputDecoration(
                 labelText: 'Contraseña actual',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                    icon: Icon(
+                      currentPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        currentPasswordVisible = !currentPasswordVisible;
+                      });
+                    },
+                  ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _newController,
-              obscureText: true,
-              decoration: const InputDecoration(
+              obscureText: !nextPasswordVisible,
+              decoration: InputDecoration(
                 labelText: 'Nueva contraseña',
                 border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                    icon: Icon(
+                      nextPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        nextPasswordVisible = !nextPasswordVisible;
+                      });
+                    },
+                  ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _repeatController,
-              obscureText: true,
-              decoration: const InputDecoration(
+              obscureText: !repeatPasswordVisible,
+              decoration: InputDecoration(
                 labelText: 'Repetir contraseña',
                 border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                    icon: Icon(
+                      repeatPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        repeatPasswordVisible = !repeatPasswordVisible;
+                      });
+                    },
+                  ),
               ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _isLoading ? null : changePassword,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+                    backgroundColor: Color.fromRGBO(220, 96, 122, 1),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
               child:
                   _isLoading
                       ? const SizedBox(
