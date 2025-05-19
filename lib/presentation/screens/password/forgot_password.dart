@@ -28,6 +28,68 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
     
   }
 
+  void showPopup() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
+          title: const Text(
+            '¡Email enviado!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: Color(0xFF2F2F2F),
+            ),
+          ),
+          content: SizedBox(
+            width: 250,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Revisa tu bandeja de entrada para restablecer tu contraseña.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    color: Color(0xFF2F2F2F),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Divider(thickness: 1),
+                const SizedBox(height: 6),
+                OutlinedButton(
+                  onPressed: () => context.go('/login'),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB5D6B2),
+                    side: const BorderSide(color: Colors.black),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Aceptar',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -36,29 +98,7 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
       next.when(
         loading: () {},
         data: (_) {
-          showDialog(
-            context: context,
-            builder:
-                (_) => AlertDialog(
-                  title: const Text('¡Email enviado!'),
-                  content: const Text(
-                    'Revisa tu bandeja de entrada para restablecer tu contraseña.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Color(0xFFD7F9DE),
-                        foregroundColor: Color(0xFF606060),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-          );
+          showPopup();
         },
         error: (err, _) {
           final msg =
