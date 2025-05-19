@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/presentation/providers/user_provider.dart';
 
@@ -40,13 +41,23 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
 
   Future<void> _updatePatient() async {
     try {
+      final heightText = _heightController.text.trim();
+      final weightText = _weightController.text.trim();
+
+      if (heightText.length > 3 || weightText.length > 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Altura y peso deben tener máximo 3 dígitos')),
+        );
+        return;
+      }
+
       await ref.read(userProvider.notifier).updatePatient(
         id: widget.id,
         name: _nameController.text,
         lastname: _lastNameController.text,
         email: _emailController.text,
-        height: int.tryParse(_heightController.text.trim()) ?? 0,
-        weight: int.tryParse(_weightController.text.trim()) ?? 0,
+        height: int.tryParse(heightText) ?? 0,
+        weight: int.tryParse(weightText) ?? 0,
         gender: _selectedGender ?? '',
         birthday: _birthDay != null ? Timestamp.fromDate(_birthDay!) : null,
         activity: _selectedActivity ?? '',
@@ -174,6 +185,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
                         'Altura',
                         keyboardType: TextInputType.number,
                         suffix: 'cm',
+                        inputFormatters: [LengthLimitingTextInputFormatter(3)],
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -183,6 +195,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
                         'Peso',
                         keyboardType: TextInputType.number,
                         suffix: 'kg',
+                        inputFormatters: [LengthLimitingTextInputFormatter(3)],
                       ),
                     ),
                   ],
@@ -212,13 +225,19 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {TextInputType? keyboardType, String? suffix}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
+    TextInputType? keyboardType,
+    String? suffix,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         style: const TextStyle(
           fontSize: 14,
           color: Colors.black87,
@@ -238,10 +257,12 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
         color: Colors.black87,
         fontWeight: FontWeight.w600,
       ),
-      items: validGender.map((sexo) => DropdownMenuItem(
-        value: sexo,
-        child: Text(sexo),
-      )).toList(),
+      items: validGender
+          .map((sexo) => DropdownMenuItem(
+                value: sexo,
+                child: Text(sexo),
+              ))
+          .toList(),
       onChanged: (value) => setState(() => _selectedGender = value),
     );
   }
