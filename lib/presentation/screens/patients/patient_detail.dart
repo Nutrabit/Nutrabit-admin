@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
+import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
 
@@ -15,13 +17,14 @@ class PatientDetail extends ConsumerWidget {
     final userAsync = ref.watch(userStreamProvider(id));
 
     return userAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text('Error al cargar paciente: $error')),
-      ),
+      loading:
+          () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error:
+          (error, _) => Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text('Error al cargar paciente: $error')),
+          ),
       data: (snapshot) {
         if (!snapshot.exists) {
           return Scaffold(
@@ -62,7 +65,9 @@ class PatientDetail extends ConsumerWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PatientModifier(id: id)),
+                    MaterialPageRoute(
+                      builder: (context) => PatientModifier(id: id),
+                    ),
                   );
                 },
               ),
@@ -91,7 +96,9 @@ class PatientDetail extends ConsumerWidget {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => PatientModifier(id: id)),
+                                MaterialPageRoute(
+                                  builder: (context) => PatientModifier(id: id),
+                                ),
                               );
                             },
                           ),
@@ -103,24 +110,46 @@ class PatientDetail extends ConsumerWidget {
                             children: [
                               CircleAvatar(
                                 radius: 50,
-                                backgroundImage: profilePic != null && profilePic != ''
-                                    ? NetworkImage(profilePic)
-                                    : const AssetImage('assets/images/avatar.png') as ImageProvider,
+                                backgroundImage:
+                                    profilePic != null && profilePic != ''
+                                        ? NetworkImage(profilePic)
+                                        : const AssetImage(
+                                              'assets/images/avatar.png',
+                                            )
+                                            as ImageProvider,
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(completeName,
-                                        style: const TextStyle(
-                                            fontSize: 18, fontWeight: FontWeight.bold)),
-                                    Text(email, style: const TextStyle(color: Colors.black54)),
+                                    Text(
+                                      completeName,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      email,
+                                      style: const TextStyle(
+                                        color: Colors.black54,
+                                      ),
+                                    ),
                                     const Divider(),
-                                    Text('Edad: $age', style: const TextStyle(color: Colors.black54)),
+                                    Text(
+                                      'Edad: $age',
+                                      style: const TextStyle(
+                                        color: Colors.black54,
+                                      ),
+                                    ),
                                     const Divider(),
-                                    Text('$weight kg / $height cm',
-                                        style: const TextStyle(color: Colors.black54)),
+                                    Text(
+                                      '$weight kg / $height cm',
+                                      style: const TextStyle(
+                                        color: Colors.black54,
+                                      ),
+                                    ),
                                     const Divider(),
                                   ],
                                 ),
@@ -138,7 +167,44 @@ class PatientDetail extends ConsumerWidget {
                     children: [
                       buildButton(context, 'Ver historial de turnos'),
                       const SizedBox(height: 12),
-                      buildButton(context, 'Enviar archivos'),
+                      // buildButton(context, 'Enviar archivos'),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => AttachFilesScreen(patientId: id),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(56,), // Equivale a height + vertical padding (16 * 2)
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
+                          backgroundColor: Colors.white, // Fondo blanco como el de un contenedor normal
+                          elevation:0, // Sin sombra para que se vea plano como un Container
+                          side: const BorderSide(
+                            color: Color(0xFFDC607A),
+                          ), // Borde rosado
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Enviar archivos",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -156,74 +222,143 @@ class PatientDetail extends ConsumerWidget {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(22),
                               ),
-                              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+                              contentPadding: const EdgeInsets.fromLTRB(
+                                24,
+                                20,
+                                24,
+                                10,
+                              ),
                               content: SizedBox(
                                 width: 250,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text('¿Estás seguro de que deseas ${isActive ? 'deshabilitar' : 'habilitar'} a $name?'),
+                                    Text(
+                                      '¿Estás seguro de que deseas ${isActive ? 'deshabilitar' : 'habilitar'} a $name?',
+                                    ),
                                     const SizedBox(height: 10),
                                     const Divider(),
                                     const SizedBox(height: 1),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         OutlinedButton(
-                                          onPressed: () => Navigator.of(dialogContext).pop(),
+                                          onPressed:
+                                              () =>
+                                                  Navigator.of(
+                                                    dialogContext,
+                                                  ).pop(),
                                           style: OutlinedButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                              horizontal: 12,
+                                            ),
                                             minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
                                           ),
                                           child: const Text(
                                             'CANCELAR',
-                                            style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Color(0xFF706B66),
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         OutlinedButton(
                                           onPressed: () async {
                                             Navigator.of(dialogContext).pop();
-                                            await ref.read(userProvider.notifier).updateUserState(id, !isActive);
+                                            await ref
+                                                .read(userProvider.notifier)
+                                                .updateUserState(id, !isActive);
 
                                             showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
                                                 return AlertDialog(
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          22,
+                                                        ),
+                                                  ),
                                                   content: SizedBox(
                                                     width: 250,
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         Text(
                                                           isActive
                                                               ? '¡Cuenta deshabilitada correctamente!'
                                                               : '¡Cuenta habilitada correctamente!',
-                                                          textAlign: TextAlign.center,
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.w500,
-                                                            fontSize: 14,
-                                                          ),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                                fontSize: 14,
+                                                              ),
                                                         ),
-                                                        const SizedBox(height: 10),
+                                                        const SizedBox(
+                                                          height: 10,
+                                                        ),
                                                         const Divider(),
-                                                        const SizedBox(height: 6),
+                                                        const SizedBox(
+                                                          height: 6,
+                                                        ),
                                                         OutlinedButton(
-                                                          onPressed: () => Navigator.of(context).pop(),
+                                                          onPressed:
+                                                              () =>
+                                                                  Navigator.of(
+                                                                    context,
+                                                                  ).pop(),
                                                           style: OutlinedButton.styleFrom(
-                                                            backgroundColor: const Color(0xFFB5D6B2),
-                                                            side: const BorderSide(color: Colors.black),
-                                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                                            minimumSize: Size.zero,
-                                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                                            backgroundColor:
+                                                                const Color(
+                                                                  0xFFB5D6B2,
+                                                                ),
+                                                            side:
+                                                                const BorderSide(
+                                                                  color:
+                                                                      Colors
+                                                                          .black,
+                                                                ),
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal:
+                                                                      12,
+                                                                  vertical: 12,
+                                                                ),
+                                                            minimumSize:
+                                                                Size.zero,
+                                                            tapTargetSize:
+                                                                MaterialTapTargetSize
+                                                                    .shrinkWrap,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6,
+                                                                  ),
+                                                            ),
                                                           ),
                                                           child: const Text(
                                                             'VOLVER',
-                                                            style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color: Color(
+                                                                0xFF706B66,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
                                                       ],
@@ -234,16 +369,31 @@ class PatientDetail extends ConsumerWidget {
                                             );
                                           },
                                           style: OutlinedButton.styleFrom(
-                                            backgroundColor: const Color(0xFFB5D6B2),
-                                            side: const BorderSide(color: Colors.black),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                            backgroundColor: const Color(
+                                              0xFFB5D6B2,
+                                            ),
+                                            side: const BorderSide(
+                                              color: Colors.black,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 12,
+                                            ),
                                             minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
                                           ),
                                           child: const Text(
                                             'CONFIRMAR',
-                                            style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Color(0xFF706B66),
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -257,8 +407,13 @@ class PatientDetail extends ConsumerWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFDC607A),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 6,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: Text(
                         isActive ? 'Deshabilitar Cuenta' : 'Habilitar Cuenta',
@@ -289,7 +444,10 @@ class PatientDetail extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+            ),
             const Icon(Icons.arrow_forward_ios, size: 16),
           ],
         ),

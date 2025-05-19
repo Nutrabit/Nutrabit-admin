@@ -55,6 +55,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
       _showSuccessPopup();
     } catch (e) {
       print('Error al actualizar paciente: $e');
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al actualizar paciente: $e')),
       );

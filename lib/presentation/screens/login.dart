@@ -120,6 +120,7 @@ class _LoginState extends ConsumerState<Login> {
                               isLoading = false;
                             });
                             // Si el usuario no es admin, mostrar un mensaje
+                            ScaffoldMessenger.of(context).clearSnackBars();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('El usuario no es admin')),
                             );
@@ -128,6 +129,7 @@ class _LoginState extends ConsumerState<Login> {
                               isLoading = false;
                             });
                             // Si el usuario no existe o la contraseña es incorrecta, mostrar un mensaje
+                            ScaffoldMessenger.of(context).clearSnackBars();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
