@@ -110,14 +110,26 @@ class PatientDetail extends ConsumerWidget {
                             children: [
                               CircleAvatar(
                                 radius: 50,
+
+                                // Si tiene profilePic, lo carga; si no, queda en null
                                 backgroundImage:
-                                    profilePic != null && profilePic != ''
+                                    (profilePic != null &&
+                                            profilePic.isNotEmpty)
                                         ? NetworkImage(profilePic)
-                                        : const AssetImage(
-                                              'assets/images/avatar.png',
-                                            )
-                                            as ImageProvider,
+                                        : null,
+                                backgroundColor: Colors.grey[400],
+                                // Si no tiene profilePic, muestra un icono
+                                child:
+                                    (profilePic == null || profilePic.isEmpty)
+                                        ? Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: Colors.white,
+                                        )
+                                        : null, // color de fondo tras el icono
+
                               ),
+
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
