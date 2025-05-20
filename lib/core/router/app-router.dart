@@ -8,6 +8,8 @@ import 'package:nutrabit_admin/presentation/screens/login.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
+import 'package:nutrabit_admin/presentation/screens/password/change_password.dart';
+import 'package:nutrabit_admin/presentation/screens/password/forgot_password.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
@@ -20,7 +22,7 @@ import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.da
 final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => Home()),
+    GoRoute(path: '/', builder: (context, state) => HomePage()),
     GoRoute(path: '/login', builder: (context, state) => Login()),
     GoRoute(
       path: '/pacientes',
@@ -90,5 +92,8 @@ final appRouter = GoRouter(
         GoRoute(path: 'alta', builder: (context, state) => AltaListaInteres()),
       ],
     ),
+    GoRoute(path: '/recuperar-clave', builder: (context, state) => ForgotPassword()),
+    GoRoute(path: '/cambiar-clave', builder: (context, state) =>  ChangePassword()),
   ],
 );
+

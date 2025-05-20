@@ -220,6 +220,7 @@ class AddPatientButton extends StatelessWidget {
     return FloatingActionButton(
         onPressed: onPressed,
         backgroundColor: Color(0xFFD7F9DE),
+        foregroundColor: Colors.black,
         
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),

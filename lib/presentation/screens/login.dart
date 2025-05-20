@@ -35,7 +35,7 @@ class _LoginState extends ConsumerState<Login> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
                   image: DecorationImage(
-                    image: AssetImage('../assets/img/logoInicio.png'),
+                    image: AssetImage('assets/img/logoInicio.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -85,7 +85,7 @@ class _LoginState extends ConsumerState<Login> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      context.go('/forgot-password');
+                      context.go('/recuperar-clave');
                     },
                     child: Text(
                       '¿Olvidaste tu contraseña?',
@@ -120,6 +120,7 @@ class _LoginState extends ConsumerState<Login> {
                               isLoading = false;
                             });
                             // Si el usuario no es admin, mostrar un mensaje
+                            ScaffoldMessenger.of(context).clearSnackBars();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('El usuario no es admin')),
                             );
@@ -128,6 +129,7 @@ class _LoginState extends ConsumerState<Login> {
                               isLoading = false;
                             });
                             // Si el usuario no existe o la contraseña es incorrecta, mostrar un mensaje
+                            ScaffoldMessenger.of(context).clearSnackBars();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
