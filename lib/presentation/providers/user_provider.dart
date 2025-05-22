@@ -18,7 +18,7 @@ Future<void> addUser(AppUser user) async {
   final auth = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
   try {
-    final password = generateRandomPassword();
+    final String password = generateRandomPassword();
     UserCredential userCredential = await auth.createUserWithEmailAndPassword(
       email: user.email,
       password: password,
@@ -26,6 +26,7 @@ Future<void> addUser(AppUser user) async {
     final uid = userCredential.user!.uid;
     final newUser = user.copyWith(id: uid);
     await firestore.collection('users').doc(uid).set(newUser.toMap());
+    await auth.sendPasswordResetEmail(email: user.email);
   } on FirebaseAuthException catch (e) {
     throw Exception('Error de autenticación: ${e.message}');
   } catch (e) {
