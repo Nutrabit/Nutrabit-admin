@@ -5,6 +5,7 @@ import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
+import 'package:go_router/go_router.dart';
 
 class PatientDetail extends ConsumerWidget {
   final String id;
