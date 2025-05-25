@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:nutrabit_admin/presentation/screens/calendar/calendario.dart';
-import 'package:nutrabit_admin/presentation/screens/calendar/detalleDiaCalendario.dart';
+import 'package:nutrabit_admin/presentation/screens/calendar/calendar.dart';
+import 'package:nutrabit_admin/presentation/screens/calendar/patient_calendarDay.dart';
 import 'package:nutrabit_admin/presentation/screens/home.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
@@ -28,7 +28,10 @@ final appRouter = GoRouter(
       path: '/pacientes',
       builder: (context, state) => PatientList(),
       routes: [
-        GoRoute(path: '/alta', builder: (context, state) => PatientRegistration()),
+        GoRoute(
+          path: '/alta',
+          builder: (context, state) => PatientRegistration(),
+        ),
         GoRoute(
           path: ':id',
           builder:
@@ -36,21 +39,29 @@ final appRouter = GoRouter(
                   PatientDetail(id: state.pathParameters['id'] as String),
           routes: [
             GoRoute(
+              name: 'archivos',
               path: 'archivos',
-              builder: (context, state) => AttachFilesScreen(
-                patientId: state.pathParameters['id'] as String,
-              ),
+              builder:
+                  (context, state) => AttachFilesScreen(
+                    patientId: state.pathParameters['id'] as String,
+                  ),
             ),
             GoRoute(
+              name: 'calendar',
               path: 'calendario',
-              builder: (context, state) => Calendario(),
+              builder:
+                  (_, state) =>
+                      Calendar(patientId: state.pathParameters['id']!),
               routes: [
                 GoRoute(
-                  path: ':fecha',
-                  builder:
-                      (context, state) => DetalleDiaCalendario(
-                        fecha: state.pathParameters['fecha'] as String,
-                      ),
+                  name: 'calendarDetail',
+                  path: 'detalle',
+                  builder: (context, state) {
+                    final extra = state.extra as Map<String, dynamic>;
+                    final date = extra['date'] as DateTime;
+                    final patientId = extra['patientId'] as String;
+                    return CalendarDayPatient(date: date, patientId: patientId);
+                  },
                 ),
               ],
             ),
@@ -92,8 +103,13 @@ final appRouter = GoRouter(
         GoRoute(path: 'alta', builder: (context, state) => AltaListaInteres()),
       ],
     ),
-    GoRoute(path: '/recuperar-clave', builder: (context, state) => ForgotPassword()),
-    GoRoute(path: '/cambiar-clave', builder: (context, state) =>  ChangePassword()),
+    GoRoute(
+      path: '/recuperar-clave',
+      builder: (context, state) => ForgotPassword(),
+    ),
+    GoRoute(
+      path: '/cambiar-clave',
+      builder: (context, state) => ChangePassword(),
+    ),
   ],
 );
-
