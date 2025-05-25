@@ -115,7 +115,7 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recuperar contraseña')),
+      appBar: AppBar(title: const Text('Recuperar contraseña'),leading: const BackButton()),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
