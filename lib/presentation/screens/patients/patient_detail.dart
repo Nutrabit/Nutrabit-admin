@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
-import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
 
@@ -49,29 +48,13 @@ class PatientDetail extends ConsumerWidget {
         } else if (birthdayData is String) {
           birthdayDate = DateTime.tryParse(birthdayData);
         }
-
         String age = '-';
         if (birthdayDate != null) {
           age = calculateAge(birthdayDate).toString();
         }
-
         return Scaffold(
           appBar: AppBar(
             leading: const BackButton(),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.calendar_month, color: Colors.grey),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PatientModifier(id: id),
-                    ),
-                  );
-                },
-              ),
-            ],
-            backgroundColor: Colors.white,
             elevation: 0,
           ),
           body: SingleChildScrollView(
@@ -109,7 +92,6 @@ class PatientDetail extends ConsumerWidget {
                             children: [
                               CircleAvatar(
                                 radius: 50,
-
                                 // Si tiene profilePic, lo carga; si no, queda en null
                                 backgroundImage:
                                     (profilePic != null &&
@@ -126,16 +108,17 @@ class PatientDetail extends ConsumerWidget {
                                           color: Colors.white,
                                         )
                                         : null, // color de fondo tras el icono
-
                               ),
-
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      completeName,
+                                      completeName
+                                          .split(' ')
+                                          .map((word) => word.capitalize())
+                                          .join(' '),
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -176,44 +159,39 @@ class PatientDetail extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      buildButton(context, 'Ver historial de turnos'),
-                      const SizedBox(height: 12),
-                      // buildButton(context, 'Enviar archivos'),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => AttachFilesScreen(patientId: id),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(56,), // Equivale a height + vertical padding (16 * 2)
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 12,
-                          ),
-                          backgroundColor: Colors.white, // Fondo blanco como el de un contenedor normal
-                          elevation:0, // Sin sombra para que se vea plano como un Container
-                          side: const BorderSide(
-                            color: Color(0xFFDC607A),
-                          ), // Borde rosado
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      Hero(
+                        tag: 'archivos',
+                        child: PatientActionButton(
+                          title: 'Enviar archivos',
+                          onTap: () {
+                            context.pushNamed(
+                              'archivos',
+                              pathParameters: {'id': id},
+                            );
+                          },
                         ),
-                        child: const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Enviar archivos",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
-                          ),
+                      ),
+                      const SizedBox(height: 12),
+                      Hero(
+                        tag: 'calendario',
+                        child: PatientActionButton(
+                          title: 'Ver calendario',
+                          onTap: () {
+                            context.pushNamed(
+                              'calendar',
+                              pathParameters: {'id': id},
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Hero(
+                        tag: 'historial de turnos',
+                        child: PatientActionButton(
+                          title: 'Ver historial de turnos',
+                          onTap: () {
+                            // context.push('/pacientes/${this.id}/turnos');
+                          },
                         ),
                       ),
                     ],
@@ -433,7 +411,6 @@ class PatientDetail extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 62),
               ],
             ),
           ),
@@ -441,10 +418,23 @@ class PatientDetail extends ConsumerWidget {
       },
     );
   }
+}
 
-  Widget buildButton(BuildContext context, String title) {
+/// Botón reutilizable
+class PatientActionButton extends StatelessWidget {
+  final String title;
+  final VoidCallback onTap;
+
+  const PatientActionButton({
+    super.key,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),

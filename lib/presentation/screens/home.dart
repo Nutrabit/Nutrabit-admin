@@ -104,7 +104,7 @@ class HomePage extends StatelessWidget {
                 ),
                 Center(
                   child: TextButton(
-                    onPressed: () => context.go('/cambiar-clave'),
+                    onPressed: () => context.push('/cambiar-clave'),
                     child: const Text(
                       'Cambiar contraseña',
                       style: TextStyle(
