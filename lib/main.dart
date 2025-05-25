@@ -15,19 +15,17 @@ void main() async {
   runApp(const ProviderScope(child: MainApp())); 
 }
 
-class MainApp extends StatefulWidget {
+
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  State<MainApp> createState() => _MainAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _MainAppState extends State<MainApp> {
-  @override
-  Widget build(BuildContext context) {
+    final router = ref.watch(appRouter);
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }

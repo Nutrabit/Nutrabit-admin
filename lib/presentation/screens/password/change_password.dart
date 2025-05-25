@@ -126,7 +126,7 @@ class _ChangePasswordState extends ConsumerState<ChangePassword> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Cambiar contraseña')),
+      appBar: AppBar(title: const Text('Cambiar contraseña'), leading: const BackButton()),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

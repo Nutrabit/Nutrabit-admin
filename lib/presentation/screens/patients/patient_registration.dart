@@ -40,6 +40,7 @@ class PatientRegistrationForm extends ConsumerWidget {
     final TextEditingController weightController = TextEditingController();
     final ValueNotifier<String?> genderNotifier = ValueNotifier<String?>(null);
     final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
+    final TextEditingController dniController = TextEditingController();
 
     return Stack(
       children: [
@@ -62,6 +63,8 @@ class PatientRegistrationForm extends ConsumerWidget {
                 controller: emailController,
                 isValidEmailNotifier: emailInvalid,
               ),
+              SizedBox(height: 12),
+              DniField(controller: dniController),
               SizedBox(height: 12),
               Row(
                 children: [
@@ -122,6 +125,7 @@ class PatientRegistrationForm extends ConsumerWidget {
                   isLoading.value = true;
                   await createUser(
                     ref: ref,
+                    dni: dniController.text.trim().toLowerCase(),
                     name: nameController.text.trim().toLowerCase(),
                     lastName: lastNameController.text.trim().toLowerCase(),
                     email: emailController.text.trim().toLowerCase(),
@@ -152,6 +156,23 @@ class PatientRegistrationForm extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class DniField extends StatelessWidget {
+  final TextEditingController controller;
+
+  const DniField({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: 'DNI',
+        border: const OutlineInputBorder(),
+      ),
     );
   }
 }
