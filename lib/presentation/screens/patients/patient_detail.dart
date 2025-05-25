@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
+import 'package:go_router/go_router.dart';
 
 class PatientDetail extends ConsumerWidget {
   final String id;
