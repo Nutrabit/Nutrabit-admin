@@ -8,6 +8,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/core/models/calendar_event.dart';
 import 'package:nutrabit_admin/presentation/providers/events_provider.dart';
+import 'package:intl/intl.dart';
 
 class Calendar extends ConsumerStatefulWidget {
   final String patientId;
@@ -94,6 +95,7 @@ class _CalendarScreenState extends ConsumerState<Calendar> {
                   const SizedBox(height: 8),
                   // VISTA DEL CALENDARIO
                   TableCalendar<Event>(
+                    locale: 'es_ES',
                     firstDay: DateTime.utc(2020, 1, 1),
                     lastDay: DateTime.utc(2030, 12, 31),
                     focusedDay: _focusedDay,
@@ -108,6 +110,17 @@ class _CalendarScreenState extends ConsumerState<Calendar> {
                         _focusedDay = focusedDay;
                       });
                     },
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      titleTextFormatter: (date, locale) {
+                        final raw = DateFormat(
+                          'MMMM yyyy',
+                          locale,
+                        ).format(date);
+                        return toBeginningOfSentenceCase(raw)!;
+                      },
+                    ),
                     calendarStyle: CalendarStyle(
                       selectedDecoration: BoxDecoration(
                         color: Color(0xFFDC607A),
