@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/presentation/screens/courses/course_creation.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -92,9 +93,14 @@ Widget build(BuildContext context) {
                               ),
                               _menuButton(
                                 context,
-                                title: 'Publicidades',
+                                title: 'Cursos',
                                 image: 'assets/img/publicityImage.png',
-                                onTap: () {},
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CourseCreation(),
+                                  ),
+                                ),
                               ),
                               _menuButton(
                                 context,
