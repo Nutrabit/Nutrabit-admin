@@ -26,6 +26,7 @@ dependencies:
   universal_io: ^2.2.2
   uuid: ^4.0.0
   shared_preferences: ^2.0.15
+  image_picker: ^1.0.4
   flutter_localizations:
     sdk: flutter
 

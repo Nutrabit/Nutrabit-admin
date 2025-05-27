@@ -146,8 +146,8 @@ class MobileHomePage extends StatelessWidget {
                       tag: 'homebutton-publicidades',
                       child: HomeButton(
                         imagePath: 'assets/img/publicityImage.png',
-                        text: 'Publicidades',
-                        onPressed: () => context.push('/publicidades'),
+                        text: 'Cursos',
+                        onPressed: () => context.push('/cursos'),
                         fontSize: screenWidth * 0.035,
                         width: screenWidth * 0.35,
                         imageHeight: screenHeight * 0.11,
@@ -285,8 +285,8 @@ class WebHomePage extends StatelessWidget {
                       tag: 'homebutton-publicidades',
                       child: HomeButton(
                         imagePath: 'assets/img/publicityImage.png',
-                        text: 'Publicidades',
-                        onPressed: () => context.push('/publicidades'),
+                        text: 'Cursos',
+                        onPressed: () => context.push('/cursos'),
                         fontSize: screenWidth * 0.02,
                         width: screenWidth * 0.2,
                         imageHeight: screenHeight * 0.2,
