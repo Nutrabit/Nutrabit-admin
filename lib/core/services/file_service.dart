@@ -68,12 +68,13 @@ class FileUploaderService {
             .doc(fileId)
             .set(fileModel.toJson());
       }
-
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Archivos enviados exitosamente')),
       );
     } catch (e) {
       print('Error enviando archivos');
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error enviando files: $e')),
       );

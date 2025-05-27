@@ -27,7 +27,6 @@ class _LogoutState extends ConsumerState<Logout> {
               },
             ),
             TextButton(
-              child: const Text('Cerrar sesión'),
               onPressed: () async {
                 Navigator.of(context).pop(); // Cierra el diálogo
                 final result = await ref.read(authProvider.notifier).logout();
@@ -35,6 +34,7 @@ class _LogoutState extends ConsumerState<Logout> {
                   if (mounted) context.go('/login');
                 } else {
                   if (mounted) {
+                    ScaffoldMessenger.of(context).clearSnackBars();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Error al cerrar sesión')),
                     );
@@ -48,6 +48,7 @@ class _LogoutState extends ConsumerState<Logout> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+              child: const Text('Cerrar sesión'),
             ),
           ],
         );

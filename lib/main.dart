@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/core/router/app-router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 
 
 void main() async {
@@ -15,19 +17,28 @@ void main() async {
   runApp(const ProviderScope(child: MainApp())); 
 }
 
-class MainApp extends StatefulWidget {
+
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  State<MainApp> createState() => _MainAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class _MainAppState extends State<MainApp> {
-  @override
-  Widget build(BuildContext context) {
+    final router = ref.watch(appRouter);
     return MaterialApp.router(
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''), 
+        Locale('es', ''), 
+      ],
+      locale: const Locale('es', ''),
+
       debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }

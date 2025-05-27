@@ -40,6 +40,12 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    packagingOptions {
+        resources {
+            excludes.add("**/*.icloud")
+        }
+    }
 }
 
 flutter {

@@ -1,194 +1,352 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nutrabit_admin/widgets/homeButton.dart';
 
-
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
+  ConsumerState<HomePage> createState() => _HomeState();
+}
+
+class _HomeState extends ConsumerState<HomePage> {
+  bool _assetsLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    if (!_assetsLoaded) {
+      _precacheAssets();
+    }
+  }
+
+  Future<void> _precacheAssets() async {
+    await Future.wait([
+      precachePicture(
+        ExactAssetPicture(
+          SvgPicture.svgStringDecoderBuilder,
+          'assets/img/encabezadoHome.svg',
+        ),
+        null,
+      ),
+      precacheImage(
+        const AssetImage('assets/img/nutriImage.png'),
+        context, 
+      ),
+      precacheImage(
+        const AssetImage('assets/img/patientsImage.png'),
+        context,
+      ),
+      precacheImage(
+        const AssetImage('assets/img/publicityImage.png'),
+        context,
+      ),
+      precacheImage(
+        const AssetImage('assets/img/notificationImage.png'),
+        context,
+      ),
+      precacheImage(
+        const AssetImage('assets/img/recomendationImage.png'),
+        context,
+      ),
+    ]);
+    setState(() => _assetsLoaded = true);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (!_assetsLoaded) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+
+    if (kIsWeb) {
+      return WebHomePage();
+    } else {
+      return MobileHomePage();
+    }
+  }
+}
+class MobileHomePage extends StatelessWidget {
+  const MobileHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFEAF5E7), Color(0xFFFFE4E1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 40), 
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 35),
-                        child: Text(
+      backgroundColor: const Color(0xFFFEECDA),
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              SvgPicture.asset(
+                'assets/img/encabezadoHome.svg',
+                width: screenWidth,
+
+                fit: BoxFit.fitWidth,
+              ),
+              Positioned(
+                top: screenHeight * 0.03,
+                left: screenWidth * 0.08,
+
+                child: Row(
+                  children: [
+                    Column(
+                      children: [
+                        Text(
                           '¡Aloha Flor!',
                           style: TextStyle(
-                            fontSize: 33,
-                            fontWeight: FontWeight.bold,
+                            fontSize: screenWidth * 0.08,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Image.asset(
-                          'assets/img/nutriImage.png',
-                          height: 200,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.error_outline, size: 60, color: Colors.red);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 30,
-                      mainAxisSpacing: 12,
-                      children: [
-                        _menuButton(
-                          context,
-                          title: 'Pacientes',
-                          image: 'assets/img/patientsImage.png',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PatientList()),
-                            );
-                          },
-                        ),
-
-                        _menuButton(
-                          context,
-                          title: 'Publicidades',
-                          image: 'assets/img/publicityImage.png',
-                          onTap: () {},
-                        ),
-                        _menuButton(
-                          context,
-                          title: 'Notificaciones',
-                          image: 'assets/img/notificationImage.png',
-                          onTap: () {},
-                        ),
-                        _menuButton(
-                          context,
-                          title: 'Recomendaciones',
-                          image: 'assets/img/recomendationImage.png',
-                          onTap: () {},
-                        ),
+                        SizedBox(height: screenHeight * 0.25),
                       ],
                     ),
-                    
-                  ),
+
+                    Image.asset(
+                      'assets/img/nutriImage.png',
+                      width: screenWidth * 0.5,
+                      height: screenHeight * 0.5,
+                    ),
+                    SizedBox(width: screenWidth * 0.1),
+                  ],
                 ),
-                Center(
-                  child: TextButton(
-                    onPressed: () => context.go('/cambiar-clave'),
-                    child: const Text(
-                      'Cambiar contraseña',
-                      style: TextStyle(
-                        color: Color.fromRGBO(130, 130, 130, 1),
-                        fontSize: 12,
+              ),
+
+              Positioned(
+                top: screenHeight * 0.45,
+                left: screenWidth * 0.1,
+                child: Row(
+                  children: [
+                    Hero(
+                      tag: 'homebutton-Pacientes',
+                      child: HomeButton(
+                        imagePath: 'assets/img/patientsImage.png',
+                        text: 'Pacientes',
+                        onPressed: () => context.push('/pacientes'),
+                        fontSize: screenWidth * 0.035,
+                        width: screenWidth * 0.35,
+                        imageHeight: screenHeight * 0.11,
+                        baseHeight: screenHeight * 0.04,
                       ),
+                    ),
+                    SizedBox(width: screenWidth * 0.1),
+                    Hero(
+                      tag: 'homebutton-publicidades',
+                      child: HomeButton(
+                        imagePath: 'assets/img/publicityImage.png',
+                        text: 'Publicidades',
+                        onPressed: () => context.push('/publicidades'),
+                        fontSize: screenWidth * 0.035,
+                        width: screenWidth * 0.35,
+                        imageHeight: screenHeight * 0.11,
+                        baseHeight: screenHeight * 0.04,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Positioned(
+                top: screenHeight * 0.62,
+                left: screenWidth * 0.1,
+                child: Row(
+                  children: [
+                    Hero(
+                      tag: 'homebutton-notifiaciones',
+                      child: HomeButton(
+                        imagePath: 'assets/img/notificationImage.png',
+                        text: 'Notificaciones',
+                        onPressed: () => context.push('/notificaciones'),
+                        fontSize: screenWidth * 0.035,
+                        width: screenWidth * 0.35,
+                        imageHeight: screenHeight * 0.11,
+                        baseHeight: screenHeight * 0.04,
+                      ),
+                    ),
+                    SizedBox(width: screenWidth * 0.1),
+                    Hero(
+                      tag: 'homebutton-recomendaciones',
+                      child: HomeButton(
+                        imagePath: 'assets/img/recomendationImage.png',
+                        text: 'Recomendaciones',
+                        onPressed: () => context.push('/calendario'),
+                        fontSize: screenWidth * 0.035,
+                        width: screenWidth * 0.35,
+                        imageHeight: screenHeight * 0.11,
+                        baseHeight: screenHeight * 0.04,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: TextButton(
+                  onPressed: () => context.push('/cambiar-clave'),
+                  child: Text(
+                    'Cambiar contraseña',
+                    style: TextStyle(
+                      color: Color.fromRGBO(130, 130, 130, 1),
+                      fontSize: screenHeight * 0.015,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _menuButton(
-  BuildContext context, {
-  required String title,
-  required String image,
-  required VoidCallback onTap,
-}) {
-  const Color borderColor = Color(0xFFDC607A);
-
-  return InkWell(
-    onTap: onTap,
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        border: Border.all(color: borderColor, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 5,
-            offset: const Offset(2, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: borderColor, width: 0.5), // Borde en la imagen
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.asset(
-                  image,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.broken_image, size: 60, color: Colors.grey),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: borderColor,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            ),
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
 }
 
+class WebHomePage extends StatelessWidget {
+  const WebHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFFEECDA),
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              SvgPicture.asset(
+                'assets/img/encabezadoHome.svg',
+                width: screenWidth,
+
+                fit: BoxFit.fitWidth,
+              ),
+              Positioned(
+                top: screenHeight * 0.03,
+                left: screenWidth * 0.08,
+
+                child: Row(
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          '¡Aloha Flor!',
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.04,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.25),
+                      ],
+                    ),
+                    SizedBox(width: screenWidth * 0.3),
+                    Image.asset(
+                      'assets/img/nutriImage.png',
+                      width: screenWidth * 0.5,
+                      height: screenHeight * 0.5,
+                    ),
+                    
+                  ],
+                ),
+              ),
+
+              Positioned(
+                top: screenHeight * 0.32,
+                left: screenWidth * 0.1,
+                child: Row(
+                  children: [
+                    Hero(
+                      tag: 'homebutton-Pacientes',
+                      child: HomeButton(
+                        imagePath: 'assets/img/patientsImage.png',
+                        text: 'Pacientes',
+                        onPressed: () => context.push('/pacientes'),
+                        fontSize: screenWidth * 0.02,
+                        width: screenWidth * 0.2,
+                        imageHeight: screenHeight * 0.2,
+                        baseHeight: screenHeight * 0.06,
+                      ),
+                    ),
+                    SizedBox(width: screenWidth * 0.1),
+                    Hero(
+                      tag: 'homebutton-publicidades',
+                      child: HomeButton(
+                        imagePath: 'assets/img/publicityImage.png',
+                        text: 'Publicidades',
+                        onPressed: () => context.push('/publicidades'),
+                        fontSize: screenWidth * 0.02,
+                        width: screenWidth * 0.2,
+                        imageHeight: screenHeight * 0.2,
+                        baseHeight: screenHeight * 0.06,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Positioned(
+                top: screenHeight * 0.62,
+                left: screenWidth * 0.1,
+                child: Row(
+                  children: [
+                    Hero(
+                      tag: 'homebutton-notifiaciones',
+                      child: HomeButton(
+                        imagePath: 'assets/img/notificationImage.png',
+                        text: 'Notificaciones',
+                        onPressed: () => context.push('/notificaciones'),
+                        fontSize: screenWidth * 0.02,
+                        width: screenWidth * 0.2,
+                        imageHeight: screenHeight * 0.2,
+                        baseHeight: screenHeight * 0.06,
+                      ),
+                    ),
+                    SizedBox(width: screenWidth * 0.1),
+                    Hero(
+                      tag: 'homebutton-recomendaciones',
+                      child: HomeButton(
+                        imagePath: 'assets/img/recomendationImage.png',
+                        text: 'Recomendaciones',
+                        onPressed: () => context.push('/calendario'),
+                        fontSize: screenWidth * 0.02,
+                        width: screenWidth * 0.2,
+                        imageHeight: screenHeight * 0.2,
+                        baseHeight: screenHeight * 0.06,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: TextButton(
+                  onPressed: () => context.push('/cambiar-clave'),
+                  child: Text(
+                    'Cambiar contraseña',
+                    style: TextStyle(
+                      color: Color.fromRGBO(130, 130, 130, 1),
+                      fontSize: screenHeight * 0.015,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
