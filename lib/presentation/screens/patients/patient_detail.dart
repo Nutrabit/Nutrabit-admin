@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
-import 'package:go_router/go_router.dart';
 
-/// Pantalla principal que muestra el detalle del paciente
 class PatientDetail extends ConsumerWidget {
   final String id;
-
   const PatientDetail({super.key, required this.id});
 
   @override
@@ -17,190 +15,77 @@ class PatientDetail extends ConsumerWidget {
     final userAsync = ref.watch(userStreamProvider(id));
 
     return userAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text('Error al cargar paciente: $error')),
-      ),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text('Error: $e'))),
       data: (snapshot) {
         if (!snapshot.exists) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: const Center(child: Text('Paciente no encontrado')),
-          );
+          return Scaffold(appBar: AppBar(), body: const Center(child: Text('Paciente no encontrado')));
         }
 
         final data = snapshot.data() as Map<String, dynamic>;
-        return PatientDetailBody(
-          id: id,
-          data: data,
-          ref: ref,
+        final name = data['name'] ?? 'Sin nombre';
+        final lastname = data['lastname'] ?? '';
+        final email = data['email'] ?? '-';
+        final weightValue = data['weight'];
+        final heightValue = data['height'];
+        final isActive = data['isActive'] ?? true;
+        final profilePic = data['profilePic'];
+        final birthday = _parseDate(data['birthday']);
+        final age = birthday != null ? calculateAge(birthday).toString() : '-';
+        final weight = (weightValue != null && weightValue != 0) ? weightValue.toString() : '-';
+        final height = (heightValue != null && heightValue != 0) ? heightValue.toString() : '-';
+
+        return Scaffold(
+          appBar: AppBar(leading: const BackButton(), elevation: 0),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 24),
+                _InfoCard(
+                  name: '$name $lastname',
+                  email: email,
+                  age: age,
+                  weight: weight,
+                  height: height,
+                  profilePic: profilePic,
+                  onEdit: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => PatientModifier(id: id)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                PatientActions(id: id),
+                const SizedBox(height: 32),
+                AccountStatusButton(
+                  isActive: isActive,
+                  name: '$name $lastname',
+                  id: id,
+                  ref: ref,
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
-}
 
-/// Widget que contiene el cuerpo principal del detalle del paciente
-class PatientDetailBody extends StatelessWidget {
-  final String id;
-  final Map<String, dynamic> data;
-  final WidgetRef ref;
-
-  const PatientDetailBody({
-    super.key,
-    required this.id,
-    required this.data,
-    required this.ref,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final patientInfo = PatientInfo.fromMap(data);
-
-    return PatientDetailLayout(
-      patientInfo: patientInfo,
-      id: id,
-      ref: ref,
-    );
+  DateTime? _parseDate(dynamic birthdayData) {
+    if (birthdayData is Timestamp) return birthdayData.toDate();
+    if (birthdayData is String) return DateTime.tryParse(birthdayData);
+    return null;
   }
 }
 
-// Clase simple para datos procesados
-class PatientInfo {
-  final String completeName;
-  final String email;
-  final String age;
-  final String weight;
-  final String height;
-  final bool isActive;
-  final String? profilePic;
-
-  PatientInfo({
-    required this.completeName,
-    required this.email,
-    required this.age,
-    required this.weight,
-    required this.height,
-    required this.isActive,
-    this.profilePic,
-  });
-
-  factory PatientInfo.fromMap(Map<String, dynamic> data) {
-    final name = data['name'] ?? 'Sin nombre';
-    final lastname = data['lastname'] ?? '';
-    final completeName = '$name $lastname';
-    final email = data['email'] ?? '-';
-    final weight = data['weight']?.toString() ?? '-';
-    final height = data['height']?.toString() ?? '-';
-    final isActive = data['isActive'] ?? true;
-    final profilePic = data['profilePic'];
-
-    // Procesar fecha y calcular edad
-    final birthdayData = data['birthday'];
-    DateTime? birthdayDate;
-    if (birthdayData is Timestamp) {
-      birthdayDate = birthdayData.toDate();
-    } else if (birthdayData is String) {
-      birthdayDate = DateTime.tryParse(birthdayData);
-    }
-    String age = '-';
-    if (birthdayDate != null) {
-      age = calculateAge(birthdayDate).toString();
-    }
-
-    return PatientInfo(
-      completeName: completeName,
-      email: email,
-      age: age,
-      weight: weight,
-      height: height,
-      isActive: isActive,
-      profilePic: profilePic,
-    );
-  }
-}
-
-// Widget que se encarga solo del UI y recibe datos limpios
-class PatientDetailLayout extends StatelessWidget {
-  final PatientInfo patientInfo;
-  final String id;
-  final WidgetRef ref;
-
-  const PatientDetailLayout({
-    super.key,
-    required this.patientInfo,
-    required this.id,
-    required this.ref,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: const BackButton(),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: PatientInfoCard(
-                completeName: patientInfo.completeName,
-                email: patientInfo.email,
-                age: patientInfo.age,
-                weight: patientInfo.weight,
-                height: patientInfo.height,
-                profilePic: patientInfo.profilePic,
-                onEdit: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PatientModifier(id: id),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: PatientActions(id: id),
-            ),
-            const SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: AccountStatusButton(
-                isActive: patientInfo.isActive,
-                name: patientInfo.completeName,
-                id: id,
-                ref: ref,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-/// Widget que muestra la tarjeta con la información del paciente
-class PatientInfoCard extends StatelessWidget {
-  final String completeName;
-  final String email;
-  final String age;
-  final String weight;
-  final String height;
+class _InfoCard extends StatelessWidget {
+  final String name, email, age, weight, height;
   final String? profilePic;
   final VoidCallback onEdit;
 
-  const PatientInfoCard({
-    super.key,
-    required this.completeName,
+  const _InfoCard({
+    required this.name,
     required this.email,
     required this.age,
     required this.weight,
@@ -211,78 +96,60 @@ class PatientInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(251, 252, 250, 238),
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 15,
-            right: 20,
+    final displayName = name.split(' ').map((e) => e.capitalize()).join(' ');
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(251, 252, 250, 238),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 38, 16, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: (profilePic?.isNotEmpty ?? false) ? NetworkImage(profilePic!) : null,
+                backgroundColor: Colors.grey[400],
+                child: (profilePic?.isEmpty ?? true)
+                    ? const Icon(Icons.person, size: 50, color: Colors.white)
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(email, style: const TextStyle(color: Colors.black54)),
+                    const Divider(),
+                    Text('Edad: $age', style: const TextStyle(color: Colors.black54)),
+                    const Divider(),
+                    Text('$weight kg / $height cm', style: const TextStyle(color: Colors.black54)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 5,
+          right: 20,
+          child: Material(
+            color: Colors.transparent,
             child: IconButton(
-              icon: const Icon(Icons.edit, color: Colors.grey),
+              icon: const Icon(Icons.edit, size: 24),
               onPressed: onEdit,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: (profilePic != null && profilePic!.isNotEmpty)
-                      ? NetworkImage(profilePic!)
-                      : null,
-                  backgroundColor: Colors.grey[400],
-                  child: (profilePic == null || profilePic!.isEmpty)
-                      ? const Icon(Icons.person, size: 50, color: Colors.white)
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        completeName
-                            .split(' ')
-                            .map((word) => word.capitalize())
-                            .join(' '),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        email,
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                      const Divider(),
-                      Text(
-                        'Edad: $age',
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                      const Divider(),
-                      Text(
-                        '$weight kg / $height cm',
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                      const Divider(),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
-
 /// Widget con botones de acción para enviar archivos, ver calendario, etc.
 class PatientActions extends StatelessWidget {
   final String id;
@@ -360,7 +227,7 @@ class AccountStatusButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       child: Text(
-        isActive ? 'Deshabilitar Cuenta' : 'Habilitar Cuenta',
+        isActive ? 'deshabilitar cuenta' : 'habilitar cuenta',
         style: const TextStyle(color: Colors.white),
       ),
     );

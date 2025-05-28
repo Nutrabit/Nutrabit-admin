@@ -41,8 +41,19 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
 
   Future<void> _updatePatient() async {
     try {
+      final name = _nameController.text.trim();
+      final lastName = _lastNameController.text.trim();
+      final email = _emailController.text.trim();
       final heightText = _heightController.text.trim();
       final weightText = _weightController.text.trim();
+
+      // Validaciones obligatorias
+      if (name.isEmpty || lastName.isEmpty || email.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nombre, Apellido y Email son obligatorios')),
+        );
+        return;
+      }
 
       if (heightText.length > 3 || weightText.length > 3) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -53,9 +64,9 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
 
       await ref.read(userProvider.notifier).updatePatient(
         id: widget.id,
-        name: _nameController.text,
-        lastname: _lastNameController.text,
-        email: _emailController.text,
+        name: name,
+        lastname: lastName,
+        email: email,
         height: int.tryParse(heightText) ?? 0,
         weight: int.tryParse(weightText) ?? 0,
         gender: _selectedGender ?? '',
@@ -71,6 +82,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
       );
     }
   }
+
 
   void _showSuccessPopup() {
     showDialog(
@@ -153,7 +165,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Modificar paciente'),
+            
             leading: const BackButton(),
             backgroundColor: Colors.white,
             elevation: 0,
@@ -163,59 +175,44 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Modificar información',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Modificar información',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
-                _buildTextField(_nameController, 'Nombre'),
-                _buildTextField(_lastNameController, 'Apellido'),
-                _buildTextField(_emailController, 'Email', keyboardType: TextInputType.emailAddress),
+                _LabeledTextField(controller: _nameController, label: 'Nombre'),
+                _LabeledTextField(controller: _lastNameController, label: 'Apellido'),
+                _EmailField(controller: _emailController),
                 Row(
                   children: [
-                    Expanded(child: _buildDatePicker(context)),
+                    Expanded(child: _BirthDayPicker(birthDay: _birthDay, onDateChanged: (date) => setState(() => _birthDay = date))),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildDropdownGender()),
+                    Expanded(child: _GenderDropdown(selectedGender: _selectedGender, onChanged: (value) => setState(() => _selectedGender = value), validGender: validGender)),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildTextField(
-                        _heightController,
-                        'Altura',
-                        keyboardType: TextInputType.number,
+                      child: _LabeledNumberField(
+                        controller: _heightController,
+                        label: 'Altura',
                         suffix: 'cm',
-                        inputFormatters: [LengthLimitingTextInputFormatter(3)],
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildTextField(
-                        _weightController,
-                        'Peso',
-                        keyboardType: TextInputType.number,
+                      child: _LabeledNumberField(
+                        controller: _weightController,
+                        label: 'Peso',
                         suffix: 'kg',
-                        inputFormatters: [LengthLimitingTextInputFormatter(3)],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Center(
-                  child: ElevatedButton(
-                    onPressed: _updatePatient,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFDC607A),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Guardar cambios',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                  child: _SaveButton(onPressed: _updatePatient),
                 ),
               ],
             ),
@@ -224,14 +221,80 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
       },
     );
   }
+}
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    TextInputType? keyboardType,
-    String? suffix,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
+// Widgets modularizados:
+
+class _LabeledTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+
+  const _LabeledTextField({
+    required this.controller,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _CustomTextField(controller: controller, label: label);
+  }
+}
+
+class _EmailField extends StatelessWidget {
+  final TextEditingController controller;
+  const _EmailField({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return _CustomTextField(
+      controller: controller,
+      label: 'Email',
+      keyboardType: TextInputType.emailAddress,
+    );
+  }
+}
+class _LabeledNumberField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String suffix;
+
+  const _LabeledNumberField({
+    required this.controller,
+    required this.label,
+    required this.suffix,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _CustomTextField(
+      controller: controller,
+      label: label,
+      keyboardType: TextInputType.number,
+      suffix: suffix,
+      inputFormatters: [LengthLimitingTextInputFormatter(3),
+      FilteringTextInputFormatter.digitsOnly,
+      ],
+    );
+  }
+}
+
+class _CustomTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final TextInputType? keyboardType;
+  final String? suffix;
+  final List<TextInputFormatter>? inputFormatters;
+
+  const _CustomTextField({
+    required this.controller,
+    required this.label,
+    this.keyboardType,
+    this.suffix,
+    this.inputFormatters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -247,10 +310,23 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
       ),
     );
   }
+}
 
-  Widget _buildDropdownGender() {
+class _GenderDropdown extends StatelessWidget {
+  final String? selectedGender;
+  final List<String> validGender;
+  final ValueChanged<String?> onChanged;
+
+  const _GenderDropdown({
+    required this.selectedGender,
+    required this.onChanged,
+    required this.validGender,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: validGender.contains(_selectedGender) ? _selectedGender : null,
+      value: validGender.contains(selectedGender) ? selectedGender : null,
       decoration: inputDecoration('Sexo'),
       style: const TextStyle(
         fontSize: 14,
@@ -263,32 +339,66 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
                 child: Text(sexo),
               ))
           .toList(),
-      onChanged: (value) => setState(() => _selectedGender = value),
+      onChanged: onChanged,
     );
   }
+}
+class _BirthDayPicker extends StatelessWidget {
+  final DateTime? birthDay;
+  final ValueChanged<DateTime> onDateChanged;
 
-  Widget _buildDatePicker(BuildContext context) {
+  const _BirthDayPicker({
+    required this.birthDay,
+    required this.onDateChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
-          initialDate: _birthDay ?? DateTime(2000),
+          initialDate: birthDay ?? DateTime(2000),
           firstDate: DateTime(1900),
           lastDate: DateTime.now(),
         );
         if (picked != null) {
-          setState(() => _birthDay = picked);
+          onDateChanged(picked);
         }
       },
       child: AbsorbPointer(
         child: TextField(
           controller: TextEditingController(
-            text: _birthDay != null
-                ? "${_birthDay!.day.toString().padLeft(2, '0')}/${_birthDay!.month.toString().padLeft(2, '0')}/${_birthDay!.year}"
+            text: birthDay != null
+                ? "${birthDay!.day.toString().padLeft(2, '0')}/${birthDay!.month.toString().padLeft(2, '0')}/${birthDay!.year}"
                 : '',
           ),
           decoration: inputDecoration('Nacimiento'),
         ),
+      ),
+    );
+  }
+}
+
+class _SaveButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _SaveButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFDC607A),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: const Text(
+        'Guardar cambios',
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
