@@ -4,6 +4,7 @@ import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/calendar.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/patient_calendarDay.dart';
+import 'package:nutrabit_admin/presentation/screens/courses/course_creation.dart';
 import 'package:nutrabit_admin/presentation/screens/home.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
@@ -17,9 +18,6 @@ import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
-import 'package:nutrabit_admin/presentation/screens/publicity/altaPubli.dart';
-import 'package:nutrabit_admin/presentation/screens/publicity/detallePubli.dart';
-import 'package:nutrabit_admin/presentation/screens/publicity/publicidades.dart';
 import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -113,19 +111,7 @@ final appRouter = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(
-        path: '/publicidades',
-        builder: (context, state) => Publicidades(),
-        routes: [
-          GoRoute(
-            path: ':id',
-            builder:
-                (context, state) =>
-                    DetallePublicidad(id: state.pathParameters['id'] as String),
-          ),
-          GoRoute(path: 'alta', builder: (context, state) => AltaPublicidad()),
-        ],
-      ),
+      GoRoute(path: '/cursos', builder: (context, state) => CourseCreation()),
       GoRoute(
         path: '/notificaciones',
         builder: (context, state) => Notificaciones(),
