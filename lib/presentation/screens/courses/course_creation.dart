@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nutrabit_admin/core/models/course_model.dart';
 import 'package:nutrabit_admin/presentation/providers/course_provider.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+
 
 class CourseCreation extends ConsumerStatefulWidget {
-  const CourseCreation({super.key});
+  final Course? course;
+  const CourseCreation({super.key, this.course});
 
   @override
   ConsumerState<CourseCreation> createState() => _CourseCreationState();
@@ -27,6 +31,45 @@ class _CourseCreationState extends ConsumerState<CourseCreation> {
     null,
   );
 
+  @override
+void initState() {
+  super.initState();
+  final course = widget.course;
+
+  if (course != null) {
+    _titleController.text = course.title;
+    _webPage.text = course.webPage;
+    _linkController.text = course.inscriptionLink;
+    _startDate.value = course.courseStart;
+    _startTime.value = course.courseStart != null
+        ? TimeOfDay.fromDateTime(course.courseStart!)
+        : null;
+    _endTime.value = course.courseEnd != null
+        ? TimeOfDay.fromDateTime(course.courseEnd!)
+        : null;
+    _inscriptionStart.value = course.inscriptionStart;
+    _inscriptionEnd.value = course.inscriptionEnd;
+    _showFrom.value = course.showFrom;
+    _showUntil.value = course.showUntil;
+
+    // Cargar imagen desde URL como Uint8List
+    if (course.picture.isNotEmpty) {
+      _loadImageFromUrl(course.picture);
+    }
+  }
+}
+
+Future<void> _loadImageFromUrl(String url) async {
+  try {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      _selectedImage.value = response.bodyBytes;
+    }
+  } catch (e) {
+    debugPrint('Error cargando imagen: $e');
+  }
+}
+
 Future<void> submit() async {
   showDialog(
     context: context,
@@ -35,9 +78,30 @@ Future<void> submit() async {
       child: CircularProgressIndicator(),
     ),
   );
-
   try {
+    final existing = widget.course;
+    if (existing != null) {
+      // 📌 Si viene un curso, armamos el updatedCourse y llamamos a updateCourse:
+      final updatedCourse = existing.copyWith(
+        title: _titleController.text.trim(),
+        webPage: _webPage.text.trim(),
+        inscriptionLink: _linkController.text.trim(),
+        courseStart: _buildCourseStart(),
+        courseEnd: _buildCourseEnd(),
+        inscriptionStart: _inscriptionStart.value,
+        inscriptionEnd: _inscriptionEnd.value,
+        showFrom: _showFrom.value,
+        showUntil: _showUntil.value,
+        modifiedAtParam: DateTime.now(),
+      );
+      await ref.read(courseProvider).updateCourse(
+        existing.id,
+        updatedCourse,
+        imageBytes: _selectedImage.value,
+      );
+    } else {
     await ref.read(courseProvider).buildAndCreateCourse(
+      
       title: _titleController.text.trim(),
       webPage: _webPage.text.trim(),
       inscriptionLink: _linkController.text.trim(),
@@ -50,6 +114,7 @@ Future<void> submit() async {
       showUntil: _showUntil.value,
       imageBytes: _selectedImage.value,
     );
+    }
 
     if (mounted) {
       Navigator.of(context).pop(); 
@@ -84,6 +149,31 @@ Future<void> submit() async {
       );
     }
   }
+}
+DateTime? _buildCourseStart() {
+  if (_startDate.value != null && _startTime.value != null) {
+    return DateTime(
+      _startDate.value!.year,
+      _startDate.value!.month,
+      _startDate.value!.day,
+      _startTime.value!.hour,
+      _startTime.value!.minute,
+    );
+  }
+  return null;
+}
+
+DateTime? _buildCourseEnd() {
+  if (_startDate.value != null && _endTime.value != null) {
+    return DateTime(
+      _startDate.value!.year,
+      _startDate.value!.month,
+      _startDate.value!.day,
+      _endTime.value!.hour,
+      _endTime.value!.minute,
+    );
+  }
+  return null;
 }
 
   @override
@@ -195,6 +285,8 @@ Future<void> submit() async {
     );
   }
 }
+
+
 
 class ImagePickerField extends StatelessWidget {
   final ValueNotifier<Uint8List?> selectedImageNotifier;
@@ -520,4 +612,7 @@ class CreateCourseButton extends StatelessWidget {
       ),
     );
   }
+
+
 }
+

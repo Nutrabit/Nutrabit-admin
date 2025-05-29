@@ -1,10 +1,12 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:nutrabit_admin/core/models/course_model.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/calendar.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/patient_calendarDay.dart';
 import 'package:nutrabit_admin/presentation/screens/courses/course_creation.dart';
+import 'package:nutrabit_admin/presentation/screens/courses/course_list_screen.dart';
 import 'package:nutrabit_admin/presentation/screens/home.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
@@ -111,7 +113,26 @@ final appRouter = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(path: '/cursos', builder: (context, state) => CourseCreation()),
+      // GoRoute(path: '/cursos', builder: (context, state) => CourseCreation()),
+      GoRoute(
+        path: '/cursos',
+        builder: (context, state) => const CourseListScreen(),
+        routes: [
+          // 2️⃣ ruta para crear un curso nuevo
+          GoRoute(
+            path: 'crear',
+            builder: (context, state) => const CourseCreation(),
+          ),
+          // 3️⃣ ruta para editar: esperamos recibir el Course por `extra`
+          GoRoute(
+            path: 'editar',
+            builder: (context, state) {
+              final course = state.extra as Course;
+              return CourseCreation(course: course);
+            },
+          ),
+        ],
+      ),
       GoRoute(
         path: '/notificaciones',
         builder: (context, state) => Notificaciones(),
