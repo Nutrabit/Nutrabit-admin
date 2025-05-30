@@ -1,22 +1,20 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path;
 import '../models/file_model.dart';
-import '../utils/file_picker_util.dart'; 
+import '../utils/file_picker_util.dart';
 
 class FileUploaderService {
-  static Future<String> uploadSingleFile(File file, String userId) async {
+  static Future<String> uploadSingleFile(File file, String userId, {String? fileName}) async {
     try {
-      final fileId = const Uuid().v4();
       final fileExtension = path.extension(file.path);
-      final fileName = '$fileId$fileExtension';
+      final resolvedFileName = fileName ?? '${DateTime.now().millisecondsSinceEpoch}$fileExtension';
 
       final storageRef =
-          FirebaseStorage.instance.ref().child('users_files/$userId/$fileName');
+          FirebaseStorage.instance.ref().child('users_files/$userId/$resolvedFileName');
 
       final uploadTask = storageRef.putFile(file);
       final taskSnapshot = await uploadTask.whenComplete(() {});
@@ -26,58 +24,56 @@ class FileUploaderService {
       } else {
         throw 'Error enviando archivo';
       }
-    } catch (e) {
-      print('Error enviando archivo');
+    } catch (e, stackTrace) {
+      log('Error enviando archivo', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
 
-  static Future<void> uploadFiles({
+  static Future<bool> uploadFiles({
     required List<SelectedFile> files,
     required String patientId,
-    required BuildContext context,
   }) async {
     try {
       for (final file in files) {
         String downloadUrl;
 
+        final docRef = FirebaseFirestore.instance.collection('files').doc();
+        final fileId = docRef.id;
+        final fileName = '$fileId${path.extension(file.name)}';
+
         if (kIsWeb && file.bytes != null) {
           final ref = FirebaseStorage.instance
               .ref()
-              .child('users_files/$patientId/${file.name}');
+              .child('users_files/$patientId/$fileName');
           await ref.putData(file.bytes!);
           downloadUrl = await ref.getDownloadURL();
         } else if (file.file != null) {
-          downloadUrl = await uploadSingleFile(file.file!, patientId);
+          downloadUrl = await uploadSingleFile(file.file!, patientId, fileName: fileName);
         } else {
-          continue; // Invalid file
+          continue;
         }
 
-        final fileId = const Uuid().v4();
         final fileModel = FileModel(
           id: fileId,
           title: file.title,
           type: file.type,
           url: downloadUrl,
-          date: DateTime.now(),
           userId: patientId,
+          createdAt: null,
         );
 
-        await FirebaseFirestore.instance
-            .collection('files')
-            .doc(fileId)
-            .set(fileModel.toJson());
+        await docRef.set({
+          ...fileModel.toJson(),
+          'id': fileId,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
       }
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Archivos enviados exitosamente')),
-      );
-    } catch (e) {
-      print('Error enviando archivos');
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error enviando files: $e')),
-      );
+
+      return true;
+    } catch (e, stackTrace) {
+      log('Error enviando archivos', error: e, stackTrace: stackTrace);
+      return false;
     }
   }
 }
