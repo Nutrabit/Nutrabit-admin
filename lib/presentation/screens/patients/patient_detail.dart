@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
-import 'package:go_router/go_router.dart';
 
 class PatientDetail extends ConsumerWidget {
   final String id;
@@ -192,7 +191,10 @@ class PatientDetail extends ConsumerWidget {
                         child: PatientActionButton(
                           title: 'Ver historial de turnos',
                           onTap: () {
-                            // context.push('/pacientes/${this.id}/turnos');
+                            context.pushNamed(
+                              'appointments',
+                              pathParameters: {'id': id},
+                            );
                           },
                         ),
                       ),
