@@ -37,10 +37,20 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
     final files = ref.read(fileProvider).files;
     setState(() => _isUploading = true);
 
-    await FileUploaderService.uploadFiles(
+    final success = await FileUploaderService.uploadFiles(
       files: files,
       patientId: widget.patientId,
-      context: context,
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success
+            ? 'Archivos enviados exitosamente'
+            : 'Error enviando archivos'),
+      ),
     );
 
     ref.read(fileProvider.notifier).clear();
@@ -186,30 +196,30 @@ class UploadFilesButton extends StatelessWidget {
 
   const UploadFilesButton({super.key, required this.isUploading, required this.hasFiles, required this.onUpload});
 
-    @override
-    Widget build(BuildContext context) {
-      return ElevatedButton.icon(
-        onPressed: hasFiles && !isUploading ? onUpload : null,
-        icon: const Icon(Icons.cloud_upload),
-        label: Text(
-          isUploading ? 'Subiendo...' : 'Subir archivos',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: hasFiles && !isUploading ? onUpload : null,
+      icon: const Icon(Icons.cloud_upload),
+      label: Text(
+        isUploading ? 'Subiendo...' : 'Subir archivos',
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+      style: ButtonStyle(
+        minimumSize: WidgetStateProperty.all(const Size.fromHeight(50)),
+        backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.disabled)) return Colors.grey.shade400;
+          if (states.contains(WidgetState.pressed)) return const Color.fromARGB(255, 165, 70, 90);
+          return const Color(0xFFDC607A);
+        }),
+        foregroundColor: WidgetStateProperty.all(Colors.white),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        style: ButtonStyle(
-          minimumSize: WidgetStateProperty.all(const Size.fromHeight(50)),
-          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-            if (states.contains(WidgetState.disabled)) return Colors.grey.shade400;
-            if (states.contains(WidgetState.pressed)) return const Color.fromARGB(255, 165, 70, 90);
-            return const Color(0xFFDC607A);
-          }),
-          foregroundColor: WidgetStateProperty.all(Colors.white),
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          elevation: WidgetStateProperty.all(4),
-        ),
-      );
-    }
+        elevation: WidgetStateProperty.all(4),
+      ),
+    );
+  }
 }
 
 class LoadingOverlay extends StatelessWidget {
@@ -221,4 +231,3 @@ class LoadingOverlay extends StatelessWidget {
         child: const Center(child: CircularProgressIndicator()),
       );
 }
-
