@@ -12,6 +12,14 @@ class CourseService {
         .collection('courses')
         .get();
 
-    return query.docs.map((doc) => Course.fromFirestore(doc)).toList();
+    final courses = query.docs.map((doc) => Course.fromFirestore(doc)).toList();
+    // ordenar los cursos por fecha de inicio
+    courses.sort((a, b) {
+      if (a.courseStart == null && b.courseStart == null) return 0;
+      if (a.courseStart == null) return 1;
+      if (b.courseStart == null) return -1;
+      return a.courseStart!.compareTo(b.courseStart!);
+    });
+    return courses;
   }
 }

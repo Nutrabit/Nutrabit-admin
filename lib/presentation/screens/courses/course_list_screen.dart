@@ -37,12 +37,6 @@ class CourseListScreen extends ConsumerWidget {
           error: (err, _) => Center(child: Text('Error: $err')),
         ),
       ),
-      // Botón flotante para agregar un nuevo curso
-      // floatingActionButton: addCourseButton(
-      //   onPressed: () {
-      //     context.push('/cursos/crear');
-      //   },
-      // ),
       floatingActionButton: addCourseButton(
         onPressed: () async {
           // 1. Abrimos la pantalla de creación y esperamos un bool
@@ -323,10 +317,6 @@ class CourseOptionsMenu extends ConsumerWidget {
       icon: const Icon(Icons.more_vert, color: Colors.white),
       onSelected: (action) async {
         switch (action) {
-          // case 'editar':
-          //   // context.push('/cursos/editar/${course.id}');
-          //   context.push('/cursos/editar', extra: course);
-          //   break;
           case 'editar':
             // 1. Abrimos la pantalla de edición y esperamos un bool
             final updated = await context.push<bool>(
@@ -415,7 +405,6 @@ class CourseOptionsMenu extends ConsumerWidget {
             const PopupMenuItem(value: 'editar', child: Text('Editar')),
             PopupMenuItem(
               value: 'show',
-              // child: Text(course.isVisible ? 'Ocultar' : 'Mostrar'),
               child: Text(course.showCourse ? 'Ocultar' : 'Mostrar'),
             ),
             const PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),

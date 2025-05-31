@@ -270,4 +270,5 @@ final courseServiceProvider = Provider<CourseService>((ref) {
 final courseListProvider = FutureProvider<List<Course>>((ref) async {
   final service = ref.watch(courseServiceProvider);
   return service.fetchAllCourses();
+
 });
