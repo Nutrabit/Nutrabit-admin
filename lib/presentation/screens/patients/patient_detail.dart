@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
@@ -150,7 +151,7 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
-/// Widget con botones de acción para enviar archivos, ver calendario, etc.
+/// Widget con botones de acción para enviar archivos, ver calendario
 class PatientActions extends StatelessWidget {
   final String id;
 
@@ -221,11 +222,7 @@ class AccountStatusButton extends StatelessWidget {
       onPressed: () {
         _showConfirmDialog(context);
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFDC607A),
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
+      style: mainButtonDecoration(),
       child: Text(
         isActive ? 'deshabilitar cuenta' : 'habilitar cuenta',
         style: const TextStyle(color: Colors.white),

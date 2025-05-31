@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
+import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'package:nutrabit_admin/presentation/providers/user_provider.dart';
 
 class PatientModifier extends ConsumerStatefulWidget {
@@ -40,49 +41,54 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
   }
 
   Future<void> _updatePatient() async {
-    try {
-      final name = _nameController.text.trim();
-      final lastName = _lastNameController.text.trim();
-      final email = _emailController.text.trim();
-      final heightText = _heightController.text.trim();
-      final weightText = _weightController.text.trim();
+  try {
+    final name = _nameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim();
+    final heightText = _heightController.text.trim();
+    final weightText = _weightController.text.trim();
 
-      // Validaciones obligatorias
-      if (name.isEmpty || lastName.isEmpty || email.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nombre, Apellido y Email son obligatorios')),
-        );
-        return;
-      }
-
-      if (heightText.length > 3 || weightText.length > 3) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Altura y peso deben tener máximo 3 dígitos')),
-        );
-        return;
-      }
-
-      await ref.read(userProvider.notifier).updatePatient(
-        id: widget.id,
-        name: name,
-        lastname: lastName,
-        email: email,
-        height: int.tryParse(heightText) ?? 0,
-        weight: int.tryParse(weightText) ?? 0,
-        gender: _selectedGender ?? '',
-        birthday: _birthDay != null ? Timestamp.fromDate(_birthDay!) : null,
-        activity: _selectedActivity ?? '',
-      );
-
-      _showSuccessPopup();
-    } catch (e) {
-      print('Error al actualizar paciente: $e');
+    if (name.isEmpty || lastName.isEmpty || email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar paciente: $e')),
+        const SnackBar(content: Text('Nombre, Apellido y Email son obligatorios')),
       );
+      return;
     }
-  }
 
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor ingresa un email válido')),
+      );
+      return;
+    }
+
+    if (heightText.length > 3 || weightText.length > 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Altura y peso deben tener máximo 3 dígitos')),
+      );
+      return;
+    }
+
+    await ref.read(userProvider.notifier).updatePatient(
+      id: widget.id,
+      name: name,
+      lastname: lastName,
+      email: email,
+      height: int.tryParse(heightText) ?? 0,
+      weight: int.tryParse(weightText) ?? 0,
+      gender: _selectedGender ?? '',
+      birthday: _birthDay != null ? Timestamp.fromDate(_birthDay!) : null,
+      activity: _selectedActivity ?? '',
+    );
+
+    _showSuccessPopup();
+  } catch (e) {
+    print('Error al actualizar paciente: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al actualizar paciente: $e')),
+    );
+  }
+}
 
   void _showSuccessPopup() {
     showDialog(
@@ -386,13 +392,7 @@ class _SaveButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFDC607A),
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      style: mainButtonDecoration(), // <- Aquí usamos la función directamente
       child: const Text(
         'Guardar cambios',
         style: TextStyle(color: Colors.white),
