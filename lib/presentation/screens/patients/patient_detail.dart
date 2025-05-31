@@ -192,7 +192,10 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Ver historial de turnos',
             onTap: () {
-              
+              context.pushNamed(
+              'appointments',
+              pathParameters: {'id': id},
+             );
             },
           ),
         ),
