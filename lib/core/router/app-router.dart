@@ -19,7 +19,7 @@ import 'package:nutrabit_admin/presentation/screens/password/forgot_password.dar
 import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
-import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/appointments.dart';
 import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -108,7 +108,17 @@ final appRouter = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
-              GoRoute(path: 'turnos', builder: (context, state) => Turnos()),
+              GoRoute(
+                name: 'appointments',
+                path: 'turnos',
+                builder: (context, state) {
+                  final patientId = state.pathParameters['id'];
+                  if (patientId == null) {
+                    return const Scaffold(body: Center(child: Text('Paciente no encontrado')));
+                  }
+                  return Appointments(id: patientId);
+                },
+              ),
             ],
           ),
         ],

@@ -37,6 +37,7 @@ Future<void> createUser({
 
   try {
     await addUser(newUser);
+    // ignore: unused_result
     ref.refresh(usersProvider);
     onDone();
     if (context.mounted) {

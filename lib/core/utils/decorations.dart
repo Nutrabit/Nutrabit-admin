@@ -35,3 +35,11 @@ InputDecoration textFieldDecoration(String label) {
     suffixText: suffix, // Aquí se añade el sufijo opcional
   );
 }
+
+const titleStyle = const TextStyle(
+  fontFamily: 'Inter',
+  fontSize: 28,
+  fontWeight: FontWeight.bold,
+);
+
+const textStyle = const TextStyle(fontFamily: 'Inter', fontSize: 18);
