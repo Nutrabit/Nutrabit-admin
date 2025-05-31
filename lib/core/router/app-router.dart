@@ -123,22 +123,19 @@ final appRouter = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      // GoRoute(path: '/cursos', builder: (context, state) => CourseCreation()),
       GoRoute(
         path: '/cursos',
         builder: (context, state) => const CourseListScreen(),
         routes: [
-          // 2️⃣ ruta para crear un curso nuevo
           GoRoute(
             path: 'crear',
-            builder: (context, state) => const CourseCreation(),
+            builder: (context, state) => const CourseCreationScreen(),
           ),
-          // 3️⃣ ruta para editar: esperamos recibir el Course por `extra`
           GoRoute(
             path: 'editar',
             builder: (context, state) {
               final course = state.extra as Course;
-              return CourseCreation(course: course);
+              return CourseCreationScreen(course: course);
             },
           ),
         ],

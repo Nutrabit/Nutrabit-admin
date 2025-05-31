@@ -38,9 +38,22 @@ class CourseListScreen extends ConsumerWidget {
         ),
       ),
       // Botón flotante para agregar un nuevo curso
+      // floatingActionButton: addCourseButton(
+      //   onPressed: () {
+      //     context.push('/cursos/crear');
+      //   },
+      // ),
       floatingActionButton: addCourseButton(
-        onPressed: () {
-          context.push('/cursos/crear');
+        onPressed: () async {
+          // 1. Abrimos la pantalla de creación y esperamos un bool
+          final created = await context.push<bool>('/cursos/crear');
+          // 2. Si CourseCreation hizo pop(true), refrescamos la lista
+          if (created == true) {
+            ref.refresh(courseListProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Curso creado correctamente')),
+            );
+          }
         },
       ),
       // Ubicación del botón flotante
@@ -283,9 +296,7 @@ class _LinkButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: () async {
         final uri = Uri.parse(url);
-        final messenger = ScaffoldMessenger.of(
-          context,
-        ); 
+        final messenger = ScaffoldMessenger.of(context);
 
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -312,39 +323,89 @@ class CourseOptionsMenu extends ConsumerWidget {
       icon: const Icon(Icons.more_vert, color: Colors.white),
       onSelected: (action) async {
         switch (action) {
+          // case 'editar':
+          //   // context.push('/cursos/editar/${course.id}');
+          //   context.push('/cursos/editar', extra: course);
+          //   break;
           case 'editar':
-            // context.push('/cursos/editar/${course.id}');
-            context.push('/cursos/editar', extra: course);
+            // 1. Abrimos la pantalla de edición y esperamos un bool
+            final updated = await context.push<bool>(
+              '/cursos/editar',
+              extra: course, // pasamos el objeto course para no volver a fetch
+            );
+            // 2. Si CourseCreation hizo pop(true), refrescamos la lista
+            if (updated == true) {
+              ref.refresh(courseListProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Curso actualizado correctamente'),
+                ),
+              );
+            }
             break;
           case 'show':
-            // ref.read(courseListProvider.notifier)
-            //     .toggleVisibility(course.id);
             await ref.read(courseProvider).updateShowCourse(course.id);
+            ref.refresh(courseListProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  course.showCourse
+                      ? 'Curso ocultado correctamente'
+                      : 'Curso mostrado correctamente',
+                ),
+              ),
+            );
             break;
           case 'eliminar':
             showDialog(
               context: context,
-              builder:
-                  (_) => AlertDialog(
-                    title: const Text('Eliminar curso'),
-                    content: const Text(
-                      '¿Seguro que quieres eliminar este curso?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancelar'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // ref.read(courseListProvider.notifier)
-                          //    .deleteCourse(course.id);
-                          // Navigator.pop(context);
-                        },
-                        child: const Text('Eliminar'),
-                      ),
-                    ],
+              builder: (_) => AlertDialog(
+                title: const Text('Eliminar curso'),
+                content: const Text('¿Seguro que quieres eliminar este curso?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => context.pop(),
+                    child: const Text('Cancelar'),
                   ),
+                  TextButton(
+                    onPressed: () async {
+                      // Se cierra el popup
+                      context.pop();
+                      // Se muestra el spinner
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(child: CircularProgressIndicator()),
+                      );
+
+                      try {
+                        // Borra el curso
+                        // Verifica si tiene imagen y la borra
+                        final imageUrl = course.picture;
+                        await ref.read(courseProvider).deleteCourse(
+                          course.id,
+                          imageUrl: imageUrl,
+                        );
+
+                        // Hace refresh de la lista de cursos
+                        ref.refresh(courseListProvider);
+                      } catch (e) {
+                        debugPrint('Error al eliminar curso: $e');
+                      } finally {
+                        // Cierra el spinner y vuelve a la lista
+                        context.pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Curso eliminado correctamente')),
+                        );
+                      }
+                    },
+                    child: const Text(
+                      'Eliminar',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
             );
             break;
         }
@@ -355,7 +416,7 @@ class CourseOptionsMenu extends ConsumerWidget {
             PopupMenuItem(
               value: 'show',
               // child: Text(course.isVisible ? 'Ocultar' : 'Mostrar'),
-              child: Text(course.showCourse? 'Ocultar' : 'Mostrar'),
+              child: Text(course.showCourse ? 'Ocultar' : 'Mostrar'),
             ),
             const PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),
           ],

@@ -137,45 +137,81 @@ class CourseProvider {
     Uint8List? imageBytes,
   }) async {
     try {
-      // 1) Subir imagen si hay
-      var imageUrl = updatedCourse.picture;
+      // 1) Determinar la URL final de la imagen:
+      //
+      //    - Si vienen `imageBytes != null`, subimos esos bytes y obtenemos una URL nueva.
+      //    - Si `imageBytes == null` Y `updatedCourse.picture == ''`, significa que
+      //      el usuario pulsó X para borrar la imagen, así que debemos borrar el
+      //      archivo en Storage (si existe).
+      //    - En cualquier otro caso (`imageBytes == null` y `updatedCourse.picture != ''`),
+      //      dejamos la URL antigua tal cual en Firestore.
+      String finalPictureUrl = updatedCourse.picture;
+
       if (imageBytes != null) {
-        final ref = _storage.ref().child('course_image/$id.jpg');
-        await ref.putData(imageBytes);
-        imageUrl = await ref.getDownloadURL();
+        // CASO A: Subir imagen nueva
+        final storageRef = _storage.ref().child('course_image/$id.jpg');
+        await storageRef.putData(imageBytes);
+        finalPictureUrl = await storageRef.getDownloadURL();
+      } else {
+        // CASO B: No hay bytes nuevos
+        if (updatedCourse.picture.isEmpty) {
+          // El usuario mandó picture=='' → borrar imagen antigua de Storage
+          try {
+            final storageRef = _storage.ref().child('course_image/$id.jpg');
+            await storageRef.delete();
+          } catch (e) {
+            // Puede que el archivo no existiera; podemos ignorar el error.
+          }
+          // finalPictureUrl queda en '' para que Firestore elimine ese campo
+        }
+        // Si updatedCourse.picture != '' (URL antigua), la dejamos intacta.
       }
 
-      // 2) Creamos un nuevo Course que incluya la URL
-      final courseToSave = updatedCourse.copyWith(picture: imageUrl);
+      // 2) Ahora construimos un objeto Course que incluya la URL final (puede ser '' o la URL nueva o la antigua)
+      final courseToSave = updatedCourse.copyWith(picture: finalPictureUrl);
 
-      // 3) Construimos el mapa EXPLÍCITO para Firestore,
-      //    incluyendo nulls en TODOS los campos de fecha
+      // 3) Preparamos el mapa de datos para Firestore.
+      //    Usamos .set(merge: true) para que los campos nulos/'' eliminen valores anteriores.
       final data = <String, dynamic>{
-        'title':           courseToSave.title,
-        'webPage':         courseToSave.webPage,
+        'title': courseToSave.title,
+        'webPage': courseToSave.webPage,
         'inscriptionLink': courseToSave.inscriptionLink,
-        'showCourse':      courseToSave.showCourse,
+        'showCourse': courseToSave.showCourse,
         'showInscription': courseToSave.showInscription,
-        'picture':         courseToSave.picture,
-        // fechas/hora (si es null → null; si no → Timestamp)
-        'courseStart':      courseToSave.courseStart     != null
-            ? Timestamp.fromDate(courseToSave.courseStart!)     : null,
-        'courseEnd':        courseToSave.courseEnd       != null
-            ? Timestamp.fromDate(courseToSave.courseEnd!)       : null,
-        'inscriptionStart': courseToSave.inscriptionStart!= null
-            ? Timestamp.fromDate(courseToSave.inscriptionStart!): null,
-        'inscriptionEnd':   courseToSave.inscriptionEnd  != null
-            ? Timestamp.fromDate(courseToSave.inscriptionEnd!)  : null,
-        'showFrom':         courseToSave.showFrom        != null
-            ? Timestamp.fromDate(courseToSave.showFrom!)        : null,
-        'showUntil':        courseToSave.showUntil       != null
-            ? Timestamp.fromDate(courseToSave.showUntil!)       : null,
-        'modifiedAt':       Timestamp.fromDate(courseToSave.modifiedAt),
-        // si tu modelo lleva createdAt/deletedAt puedes añadirlos aquí también
+        'picture':
+            courseToSave.picture, // '' si queremos borrarlo, o URL válida
+
+        'courseStart':
+            courseToSave.courseStart != null
+                ? Timestamp.fromDate(courseToSave.courseStart!)
+                : null,
+        'courseEnd':
+            courseToSave.courseEnd != null
+                ? Timestamp.fromDate(courseToSave.courseEnd!)
+                : null,
+        'inscriptionStart':
+            courseToSave.inscriptionStart != null
+                ? Timestamp.fromDate(courseToSave.inscriptionStart!)
+                : null,
+        'inscriptionEnd':
+            courseToSave.inscriptionEnd != null
+                ? Timestamp.fromDate(courseToSave.inscriptionEnd!)
+                : null,
+        'showFrom':
+            courseToSave.showFrom != null
+                ? Timestamp.fromDate(courseToSave.showFrom!)
+                : null,
+        'showUntil':
+            courseToSave.showUntil != null
+                ? Timestamp.fromDate(courseToSave.showUntil!)
+                : null,
+
+        'modifiedAt': Timestamp.fromDate(courseToSave.modifiedAt),
+        // Si tu modelo lleva createdAt/deletedAt, añádelos aquí igual:
+        'createdAt': Timestamp.fromDate(courseToSave.createdAt),
       };
 
-      // 4) Usamos .set(…, merge: true) para que los nulls
-      //     sobreescriban (o eliminen) los campos antiguos
+      // 4) Actualizamos en Firestore con merge: true para que los nulls/'' sobreescriban/eliminen
       await _firestore
           .collection('courses')
           .doc(id)
@@ -198,6 +234,24 @@ class CourseProvider {
 
     // Actualiza con el valor contrario
     await docRef.update({'showCourse': !current});
+  }
+
+  Future<void> deleteCourse(String id, {String? imageUrl}) async {
+    // Si hay imagen, se elimina de Storage
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        final img = _storage.refFromURL(imageUrl);
+        await img.delete();
+      } catch (e) {
+        debugPrint('Error borrando imagen de Storage: $e');
+      }
+    }
+    // Se elimina el curso de Firestore
+    try {
+      await _firestore.collection('courses').doc(id).delete();
+    } catch (e) {
+      throw CourseValidationException('Error al eliminar el curso: $e');
+    }
   }
 }
 

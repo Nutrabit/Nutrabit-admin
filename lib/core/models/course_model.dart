@@ -149,8 +149,7 @@ class Course {
 }
 
 extension CourseVisibility on Course {
-  // True si está marcado para mostrarse *y*
-  // la hora actual está dentro de [showFrom]–[showUntil] (cuando existen).
+  // Chequea si el curso está visible ahora
   bool get isVisibleNow {
     final now = DateTime.now();
     if (!showCourse) return false;
