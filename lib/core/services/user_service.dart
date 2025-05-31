@@ -35,35 +35,43 @@ Future<void> createUser({
     appointments: [],
   );
 
-  try {
-    await addUser(newUser);
-    // ignore: unused_result
-    ref.refresh(usersProvider);
-    onDone();
-    if (context.mounted) {
-      await showCustomDialog(
-        context: context,
-        message: 'Usuario creado exitosamente.',
-        buttonText: 'Continuar',
-        buttonColor: Color(0xFFBAF4C7),
-        onPressed: () {
-          Navigator.of(context).pop();
-          context.go("/pacientes");
-        },
-      );
-    }
-  } catch (e) {
-    onDone();
-    if (context.mounted) {
-      await showCustomDialog(
-        context: context,
-        message: 'Ocurrió un error: $e',
-        buttonText: 'Continuar',
-        buttonColor: Color(0xFFDC607A),
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      );
-    }
+ try {
+  await addUser(newUser);
+  ref.refresh(paginatedUsersProvider);
+  onDone();
+  
+  if (context.mounted) {
+    await showCustomDialog(
+      context: context,
+      message: 'Usuario creado exitosamente.',
+      buttonText: 'Continuar',
+      buttonColor: const Color(0xFFBAF4C7),
+      onPressed: () {
+        Navigator.of(context).pop();
+        context.go("/pacientes");
+      },
+    );
   }
+} catch (e) {
+  onDone();
+
+  final rawMessage = e.toString().toLowerCase();
+  String friendlyMessage = 'Ocurrió un error inesperado.';
+
+  if (rawMessage.contains('email-already-in-use') || rawMessage.contains('email address is already in use')) {
+    friendlyMessage = 'Email ya registrado';
+  }
+
+  if (context.mounted) {
+    await showCustomDialog(
+      context: context,
+      message: 'Ocurrió un error: $friendlyMessage',
+      buttonText: 'Continuar',
+      buttonColor: const Color(0xFFDC607A),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+  }
+}
 }
