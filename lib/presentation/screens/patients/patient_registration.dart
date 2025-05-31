@@ -13,8 +13,8 @@ class PatientRegistration extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: false,
-        title: const Text('Pacientes'),
+        centerTitle: true,
+        title: const Text('Nuevo paciente'),
         leading: const BackButton(),
         actions: [Logout()],
       ),
@@ -48,12 +48,6 @@ class PatientRegistrationForm extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Text(
-                  'Nuevo paciente',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-              ),
               SizedBox(height: 16),
               NameField(controller: nameController),
               SizedBox(height: 12),
