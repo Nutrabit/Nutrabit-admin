@@ -217,133 +217,134 @@ class WebHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFEECDA),
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: screenHeight,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              SvgPicture.asset(
-                'assets/img/encabezadoHome.svg',
-                width: screenWidth,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Determinamos si estamos en pantalla pequeña o grande
+                final isWide = constraints.maxWidth > 800;
 
-                fit: BoxFit.fitWidth,
-              ),
-              Positioned(
-                top: screenHeight * 0.03,
-                left: screenWidth * 0.08,
-
-                child: Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Column(
+                    // Encabezado
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          '¡Aloha Flor!',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            fontWeight: FontWeight.w500,
+                        // Texto saludo
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            '¡Aloha Flor!',
+                            style: TextStyle(
+                              fontSize: isWide ? 48 : 32,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
-                        SizedBox(height: screenHeight * 0.25),
+                        // Imagen a la derecha (oculta en pantalla pequeña)
+                        if (isWide)
+                          Expanded(
+                            flex: 2,
+                            child: Image.asset(
+                              'assets/img/nutriImage.png',
+                              fit: BoxFit.contain,
+                              height: 200,
+                            ),
+                          ),
                       ],
                     ),
-                    SizedBox(width: screenWidth * 0.3),
-                    Image.asset(
-                      'assets/img/nutriImage.png',
-                      width: screenWidth * 0.5,
-                      height: screenHeight * 0.5,
-                    ),
-                    
-                  ],
-                ),
-              ),
 
-              Positioned(
-                top: screenHeight * 0.32,
-                left: screenWidth * 0.1,
-                child: Row(
-                  children: [
-                    Hero(
-                      tag: 'homebutton-Pacientes',
-                      child: HomeButton(
-                        imagePath: 'assets/img/patientsImage.png',
-                        text: 'Pacientes',
-                        onPressed: () => context.push('/pacientes'),
-                        fontSize: screenWidth * 0.02,
-                        width: screenWidth * 0.2,
-                        imageHeight: screenHeight * 0.2,
-                        baseHeight: screenHeight * 0.06,
-                      ),
-                    ),
-                    SizedBox(width: screenWidth * 0.1),
-                    Hero(
-                      tag: 'homebutton-publicidades',
-                      child: HomeButton(
-                        imagePath: 'assets/img/publicityImage.png',
-                        text: 'Cursos',
-                        onPressed: () => context.push('/cursos'),
-                        fontSize: screenWidth * 0.02,
-                        width: screenWidth * 0.2,
-                        imageHeight: screenHeight * 0.2,
-                        baseHeight: screenHeight * 0.06,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    const SizedBox(height: 48),
 
-              Positioned(
-                top: screenHeight * 0.62,
-                left: screenWidth * 0.1,
-                child: Row(
-                  children: [
-                    Hero(
-                      tag: 'homebutton-notifiaciones',
-                      child: HomeButton(
-                        imagePath: 'assets/img/notificationImage.png',
-                        text: 'Notificaciones',
-                        onPressed: () => context.push('/notificaciones'),
-                        fontSize: screenWidth * 0.02,
-                        width: screenWidth * 0.2,
-                        imageHeight: screenHeight * 0.2,
-                        baseHeight: screenHeight * 0.06,
-                      ),
+                    // Grid de botones
+                    GridView.count(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      crossAxisCount: isWide ? 4 : 2,
+                      crossAxisSpacing: 40,
+                      mainAxisSpacing: 40,
+                      childAspectRatio: 1,
+                      children: [
+                        Hero(
+                          tag: 'homebutton-Pacientes',
+                          child: HomeButton(
+                            imagePath: 'assets/img/patientsImage.png',
+                            text: 'Pacientes',
+                            onPressed: () => context.push('/pacientes'),
+                            fontSize: 20,
+                            width: 250,
+                            imageHeight: 120,
+                            baseHeight: 40,
+                          ),
+                        ),
+                        Hero(
+                          tag: 'homebutton-publicidades',
+                          child: HomeButton(
+                            imagePath: 'assets/img/publicityImage.png',
+                            text: 'Cursos',
+                            onPressed: () => context.push('/cursos'),
+                            fontSize: 20,
+                            width: 250,
+                            imageHeight: 120,
+                            baseHeight: 40,
+                          ),
+                        ),
+                        Hero(
+                          tag: 'homebutton-notifiaciones',
+                          child: HomeButton(
+                            imagePath: 'assets/img/notificationImage.png',
+                            text: 'Notificaciones',
+                            onPressed: () => context.push('/notificaciones'),
+                            fontSize: 20,
+                            width: 250,
+                            imageHeight: 120,
+                            baseHeight: 40,
+                          ),
+                        ),
+                        Hero(
+                          tag: 'homebutton-recomendaciones',
+                          child: HomeButton(
+                            imagePath: 'assets/img/recomendationImage.png',
+                            text: 'Recomendaciones',
+                            onPressed: () => context.push('/calendario'),
+                            fontSize: 20,
+                            width: 250,
+                            imageHeight: 120,
+                            baseHeight: 40,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: screenWidth * 0.1),
-                    Hero(
-                      tag: 'homebutton-recomendaciones',
-                      child: HomeButton(
-                        imagePath: 'assets/img/recomendationImage.png',
-                        text: 'Recomendaciones',
-                        onPressed: () => context.push('/calendario'),
-                        fontSize: screenWidth * 0.02,
-                        width: screenWidth * 0.2,
-                        imageHeight: screenHeight * 0.2,
-                        baseHeight: screenHeight * 0.06,
+
+                    const Spacer(),
+
+                    // Footer con botón
+                    Align(
+                      alignment: Alignment.center,
+                      child: TextButton(
+                        onPressed: () => context.push('/cambiar-clave'),
+                        child: const Text(
+                          'Cambiar contraseña',
+                          style: TextStyle(
+                            color: Color.fromRGBO(130, 130, 130, 1),
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: TextButton(
-                  onPressed: () => context.push('/cambiar-clave'),
-                  child: Text(
-                    'Cambiar contraseña',
-                    style: TextStyle(
-                      color: Color.fromRGBO(130, 130, 130, 1),
-                      fontSize: screenHeight * 0.015,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
         ),
       ),
