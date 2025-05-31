@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/models/course_model.dart';
 import 'package:nutrabit_admin/presentation/providers/course_provider.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-
 
 class CourseCreation extends ConsumerStatefulWidget {
   final Course? course;
@@ -32,152 +32,174 @@ class _CourseCreationState extends ConsumerState<CourseCreation> {
   );
 
   @override
-void initState() {
-  super.initState();
-  final course = widget.course;
+  void initState() {
+    super.initState();
+    final course = widget.course;
 
-  if (course != null) {
-    _titleController.text = course.title;
-    _webPage.text = course.webPage;
-    _linkController.text = course.inscriptionLink;
-    _startDate.value = course.courseStart;
-    _startTime.value = course.courseStart != null
-        ? TimeOfDay.fromDateTime(course.courseStart!)
-        : null;
-    _endTime.value = course.courseEnd != null
-        ? TimeOfDay.fromDateTime(course.courseEnd!)
-        : null;
-    _inscriptionStart.value = course.inscriptionStart;
-    _inscriptionEnd.value = course.inscriptionEnd;
-    _showFrom.value = course.showFrom;
-    _showUntil.value = course.showUntil;
+    if (course != null) {
+      _titleController.text = course.title;
+      _webPage.text = course.webPage;
+      _linkController.text = course.inscriptionLink;
+      _startDate.value = course.courseStart;
+      _startTime.value =
+          course.courseStart != null
+              ? TimeOfDay.fromDateTime(course.courseStart!)
+              : null;
+      _endTime.value =
+          course.courseEnd != null
+              ? TimeOfDay.fromDateTime(course.courseEnd!)
+              : null;
+      _inscriptionStart.value = course.inscriptionStart;
+      _inscriptionEnd.value = course.inscriptionEnd;
+      _showFrom.value = course.showFrom;
+      _showUntil.value = course.showUntil;
 
-    // Cargar imagen desde URL como Uint8List
-    if (course.picture.isNotEmpty) {
-      _loadImageFromUrl(course.picture);
+      // Cargar imagen desde URL como Uint8List
+      if (course.picture.isNotEmpty) {
+        _loadImageFromUrl(course.picture);
+      }
     }
   }
-}
 
-Future<void> _loadImageFromUrl(String url) async {
-  try {
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      _selectedImage.value = response.bodyBytes;
+  Future<void> _loadImageFromUrl(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        _selectedImage.value = response.bodyBytes;
+      }
+    } catch (e) {
+      debugPrint('Error cargando imagen: $e');
     }
-  } catch (e) {
-    debugPrint('Error cargando imagen: $e');
   }
-}
 
-Future<void> submit() async {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => const Center(
-      child: CircularProgressIndicator(),
-    ),
-  );
-  try {
-    final existing = widget.course;
-    if (existing != null) {
-      // 📌 Si viene un curso, armamos el updatedCourse y llamamos a updateCourse:
-      final updatedCourse = existing.copyWith(
-        title: _titleController.text.trim(),
-        webPage: _webPage.text.trim(),
-        inscriptionLink: _linkController.text.trim(),
-        courseStart: _buildCourseStart(),
-        courseEnd: _buildCourseEnd(),
-        inscriptionStart: _inscriptionStart.value,
-        inscriptionEnd: _inscriptionEnd.value,
-        showFrom: _showFrom.value,
-        showUntil: _showUntil.value,
-        modifiedAtParam: DateTime.now(),
-      );
-      await ref.read(courseProvider).updateCourse(
-        existing.id,
-        updatedCourse,
-        imageBytes: _selectedImage.value,
-      );
-    } else {
-    await ref.read(courseProvider).buildAndCreateCourse(
-      
-      title: _titleController.text.trim(),
-      webPage: _webPage.text.trim(),
-      inscriptionLink: _linkController.text.trim(),
-      startDate: _startDate.value,
-      startTime: _startTime.value,
-      endTime: _endTime.value,
+  Future<void> submit() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+    try {
+      final existing = widget.course;
+      if (existing != null) {
+        // Si viene un curso, se actualiza en vez de crear uno nuevo
+         final updatedCourse = Course(
+      id: existing.id,
+      title:            _titleController.text.trim(),
+      webPage:          _webPage.text.trim(),
+      picture:          existing.picture,  // o _selectedImage…
+      courseStart:      _buildCourseStart(),
+      courseEnd:        _buildCourseEnd(),
       inscriptionStart: _inscriptionStart.value,
-      inscriptionEnd: _inscriptionEnd.value,
-      showFrom: _showFrom.value,
-      showUntil: _showUntil.value,
-      imageBytes: _selectedImage.value,
+      inscriptionEnd:   _inscriptionEnd.value,
+      showFrom:         _showFrom.value,   // si vale null, se queda null
+      showUntil:        _showUntil.value,  // idem
+      showCourse:       existing.showCourse,
+      showInscription:  existing.showInscription,
+      inscriptionLink:  _linkController.text.trim(),
+      createdAtParam:   existing.createdAt,
+      modifiedAtParam:  DateTime.now(),
+      deletedAtParam:   existing.deletedAt,
     );
-    }
+        print(
+          '–– submit: showFrom=${updatedCourse.showFrom}, showUntil=${updatedCourse.showUntil}',
+        );
+        await ref
+            .read(courseProvider)
+            .updateCourse(
+              existing.id,
+              updatedCourse,
+              imageBytes: _selectedImage.value,
+            );
+        await ref
+            .read(courseProvider)
+            .updateCourse(
+              existing.id,
+              updatedCourse,
+              imageBytes: _selectedImage.value,
+            );
+      } else {
+        await ref
+            .read(courseProvider)
+            .buildAndCreateCourse(
+              title: _titleController.text.trim(),
+              webPage: _webPage.text.trim(),
+              inscriptionLink: _linkController.text.trim(),
+              startDate: _startDate.value,
+              startTime: _startTime.value,
+              endTime: _endTime.value,
+              inscriptionStart: _inscriptionStart.value,
+              inscriptionEnd: _inscriptionEnd.value,
+              showFrom: _showFrom.value,
+              showUntil: _showUntil.value,
+              imageBytes: _selectedImage.value,
+            );
+      }
 
-    if (mounted) {
-      Navigator.of(context).pop(); 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Curso creado correctamente')),
-      );
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Curso creado correctamente')),
+        );
 
-      _titleController.clear();
-      _webPage.clear();
-      _linkController.clear();
-      _startDate.value = null;
-      _startTime.value = null;
-      _endTime.value = null;
-      _inscriptionStart.value = null;
-      _inscriptionEnd.value = null;
-      _showFrom.value = null;
-      _showUntil.value = null;
-      _selectedImage.value = null;
-    }
-  } on CourseValidationException catch (e) {
-    if (mounted) {
-      Navigator.of(context).pop(); 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
-    }
-  } catch (e) {
-    if (mounted) {
-      Navigator.of(context).pop(); 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ocurrio un error')),
-      );
+        _titleController.clear();
+        _webPage.clear();
+        _linkController.clear();
+        _startDate.value = null;
+        _startTime.value = null;
+        _endTime.value = null;
+        _inscriptionStart.value = null;
+        _inscriptionEnd.value = null;
+        _showFrom.value = null;
+        _showUntil.value = null;
+        _selectedImage.value = null;
+        context.go('/cursos');
+      }
+    } on CourseValidationException catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Ocurrio un error')));
+      }
     }
   }
-}
-DateTime? _buildCourseStart() {
-  if (_startDate.value != null && _startTime.value != null) {
-    return DateTime(
-      _startDate.value!.year,
-      _startDate.value!.month,
-      _startDate.value!.day,
-      _startTime.value!.hour,
-      _startTime.value!.minute,
-    );
-  }
-  return null;
-}
 
-DateTime? _buildCourseEnd() {
-  if (_startDate.value != null && _endTime.value != null) {
-    return DateTime(
-      _startDate.value!.year,
-      _startDate.value!.month,
-      _startDate.value!.day,
-      _endTime.value!.hour,
-      _endTime.value!.minute,
-    );
+  DateTime? _buildCourseStart() {
+    if (_startDate.value != null && _startTime.value != null) {
+      return DateTime(
+        _startDate.value!.year,
+        _startDate.value!.month,
+        _startDate.value!.day,
+        _startTime.value!.hour,
+        _startTime.value!.minute,
+      );
+    }
+    return null;
   }
-  return null;
-}
+
+  DateTime? _buildCourseEnd() {
+    if (_startDate.value != null && _endTime.value != null) {
+      return DateTime(
+        _startDate.value!.year,
+        _startDate.value!.month,
+        _startDate.value!.day,
+        _endTime.value!.hour,
+        _endTime.value!.minute,
+      );
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.course != null;
     return Scaffold(
       appBar: AppBar(),
       body: Padding(
@@ -263,21 +285,30 @@ DateTime? _buildCourseEnd() {
                 children: [
                   Expanded(
                     child: DateTimeField(
-                      label: 'Desde',
+                      label: 'Mostrar desde',
                       selectedDateTimeNotifier: _showFrom,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: DateTimeField(
-                      label: 'Hasta',
+                      label: 'Mostrar hasta',
                       selectedDateTimeNotifier: _showUntil,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              CreateCourseButton(onPressed: submit),
+              // CreateCourseButton(onPressed: submit),
+              Center(
+                child: ElevatedButton(
+                  onPressed: submit,
+                  style: mainButtonDecoration(),
+                  child: Text(
+                    isEditing ? 'Actualizar publicación' : 'Crear publicación',
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -285,8 +316,6 @@ DateTime? _buildCourseEnd() {
     );
   }
 }
-
-
 
 class ImagePickerField extends StatelessWidget {
   final ValueNotifier<Uint8List?> selectedImageNotifier;
@@ -345,13 +374,11 @@ class ImagePickerField extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: SizedBox(
-                              height: 180, 
+                              height: 180,
                               width: double.infinity,
                               child: Image.memory(
                                 imageBytes,
-                                fit:
-                                    BoxFit
-                                        .cover, 
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
@@ -444,6 +471,8 @@ class CourseStartDateField extends StatelessWidget {
                     ? IconButton(
                       icon: const Icon(Icons.clear, color: Colors.black),
                       onPressed: () {
+                        selectedDateNotifier.value = null;
+                        print('🔴 DateTimeField() clear tapped!');
                         selectedDateNotifier.value = null;
                       },
                     )
@@ -586,6 +615,8 @@ class DateTimeField extends StatelessWidget {
                         color: clearIconColor ?? Colors.black,
                       ),
                       onPressed: () {
+                        // selectedDateTimeNotifier.value = null;
+                        print('🔴 DateTimeField("$label") clear tapped!');
                         selectedDateTimeNotifier.value = null;
                       },
                     )
@@ -612,7 +643,4 @@ class CreateCourseButton extends StatelessWidget {
       ),
     );
   }
-
-
 }
-

@@ -15,10 +15,7 @@ class CourseListScreen extends ConsumerWidget {
     final asyncCourses = ref.watch(courseListProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-      ),
+      appBar: AppBar(elevation: 0, centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: asyncCourses.when(
@@ -40,16 +37,18 @@ class CourseListScreen extends ConsumerWidget {
           error: (err, _) => Center(child: Text('Error: $err')),
         ),
       ),
+      // Botón flotante para agregar un nuevo curso
       floatingActionButton: addCourseButton(
         onPressed: () {
           context.push('/cursos/crear');
         },
       ),
+      // Ubicación del botón flotante
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
-    
   }
 }
+
 class addCourseButton extends StatelessWidget {
   final VoidCallback onPressed;
   const addCourseButton({super.key, required this.onPressed});
@@ -57,15 +56,13 @@ class addCourseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-        onPressed: onPressed,
-        backgroundColor: Color(0xFFD7F9DE),
-        foregroundColor: Colors.black,
-        
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: const Icon(Icons.add),
-      );
+      onPressed: onPressed,
+      backgroundColor: Color(0xFFD7F9DE),
+      foregroundColor: Colors.black,
+
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      child: const Icon(Icons.add),
+    );
   }
 }
 
@@ -78,10 +75,7 @@ class _CourseHeaderImage extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 12),
-        Image.asset(
-          'assets/img/nutriaAbrazo.png',
-          height: 140,
-        ),
+        Image.asset('assets/img/nutriImage.png', height: 140),
       ],
     );
   }
@@ -137,21 +131,49 @@ class _CourseCard extends StatelessWidget {
         children: [
           course.picture != null && course.picture!.isNotEmpty
               ? Image.network(
-                  course.picture!,
-                  height: 240,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _errorImage(),
-                  loadingBuilder: (context, child, loadingProgress) =>
-                      loadingProgress == null
-                          ? child
-                          : _loadingImage(),
-                )
+                course.picture!,
+                height: 240,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _errorImage(),
+                loadingBuilder:
+                    (context, child, loadingProgress) =>
+                        loadingProgress == null ? child : _loadingImage(),
+              )
               : _errorImage(),
           _gradientOverlay(),
+          // Genera un "Oculto" si el curso no está visible
+          if (!course.isVisibleNow)
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Oculto',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(12.0),
-            child: _CardContent(course: course, formatDateRange: formatDateRange),
+            child: _CardContent(
+              course: course,
+              formatDateRange: formatDateRange,
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: CourseOptionsMenu(course: course),
           ),
         ],
       ),
@@ -159,30 +181,30 @@ class _CourseCard extends StatelessWidget {
   }
 
   Widget _errorImage() => Container(
-        height: 240,
-        color: Colors.grey[300],
-        child: const Center(child: Icon(Icons.broken_image, size: 50)),
-      );
+    height: 240,
+    color: Colors.grey[300],
+    child: const Center(child: Icon(Icons.broken_image, size: 50)),
+  );
 
   Widget _loadingImage() => Container(
-        height: 240,
-        color: Colors.grey[300],
-        child: const Center(child: CircularProgressIndicator()),
-      );
+    height: 240,
+    color: Colors.grey[300],
+    child: const Center(child: CircularProgressIndicator()),
+  );
 
   Widget _gradientOverlay() => Container(
-      height: 240,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.black.withAlpha((0.65 * 255).round()),
-            Colors.transparent,
-          ],
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-        ),
+    height: 240,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Colors.black.withAlpha((0.65 * 255).round()),
+          Colors.transparent,
+        ],
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
       ),
-    );
+    ),
+  );
 }
 
 // Contenido dentro del card
@@ -190,10 +212,7 @@ class _CardContent extends StatelessWidget {
   final Course course;
   final String Function(DateTime?, DateTime?) formatDateRange;
 
-  const _CardContent({
-    required this.course,
-    required this.formatDateRange,
-  });
+  const _CardContent({required this.course, required this.formatDateRange});
 
   @override
   Widget build(BuildContext context) {
@@ -201,17 +220,21 @@ class _CardContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(course.title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                )),
+        Text(
+          course.title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 4),
         if (course.webPage != null)
-          Text(course.webPage!,
-              style: const TextStyle(color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
+          Text(
+            course.webPage!,
+            style: const TextStyle(color: Colors.white),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         const SizedBox(height: 6),
         Text(
           'Inscripción: ${formatDateRange(course.inscriptionStart, course.inscriptionEnd)}',
@@ -260,7 +283,9 @@ class _LinkButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: () async {
         final uri = Uri.parse(url);
-        final messenger = ScaffoldMessenger.of(context); // ✔️ capturamos antes del await
+        final messenger = ScaffoldMessenger.of(
+          context,
+        ); 
 
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -276,4 +301,64 @@ class _LinkButton extends StatelessWidget {
   }
 }
 
+// Menú hamburguesa del curso
+class CourseOptionsMenu extends ConsumerWidget {
+  final Course course;
+  const CourseOptionsMenu({super.key, required this.course});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, color: Colors.white),
+      onSelected: (action) async {
+        switch (action) {
+          case 'editar':
+            // context.push('/cursos/editar/${course.id}');
+            context.push('/cursos/editar', extra: course);
+            break;
+          case 'show':
+            // ref.read(courseListProvider.notifier)
+            //     .toggleVisibility(course.id);
+            await ref.read(courseProvider).updateShowCourse(course.id);
+            break;
+          case 'eliminar':
+            showDialog(
+              context: context,
+              builder:
+                  (_) => AlertDialog(
+                    title: const Text('Eliminar curso'),
+                    content: const Text(
+                      '¿Seguro que quieres eliminar este curso?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // ref.read(courseListProvider.notifier)
+                          //    .deleteCourse(course.id);
+                          // Navigator.pop(context);
+                        },
+                        child: const Text('Eliminar'),
+                      ),
+                    ],
+                  ),
+            );
+            break;
+        }
+      },
+      itemBuilder:
+          (_) => [
+            const PopupMenuItem(value: 'editar', child: Text('Editar')),
+            PopupMenuItem(
+              value: 'show',
+              // child: Text(course.isVisible ? 'Ocultar' : 'Mostrar'),
+              child: Text(course.showCourse? 'Ocultar' : 'Mostrar'),
+            ),
+            const PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),
+          ],
+    );
+  }
+}

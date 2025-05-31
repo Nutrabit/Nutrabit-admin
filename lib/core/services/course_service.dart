@@ -10,7 +10,6 @@ class CourseService {
   Future<List<Course>> fetchAllCourses() async {
     final query = await _firestore
         .collection('courses')
-        .where('showCourse', isEqualTo: true)
         .get();
 
     return query.docs.map((doc) => Course.fromFirestore(doc)).toList();

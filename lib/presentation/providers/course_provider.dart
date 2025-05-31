@@ -136,18 +136,68 @@ class CourseProvider {
     Course updatedCourse, {
     Uint8List? imageBytes,
   }) async {
-    String imageUrl = updatedCourse.picture;
+    try {
+      // 1) Subir imagen si hay
+      var imageUrl = updatedCourse.picture;
+      if (imageBytes != null) {
+        final ref = _storage.ref().child('course_image/$id.jpg');
+        await ref.putData(imageBytes);
+        imageUrl = await ref.getDownloadURL();
+      }
 
-    if (imageBytes != null) {
-      final storageRef = _storage.ref().child('course_image/$id.jpg');
-      await storageRef.putData(imageBytes);
-      imageUrl = await storageRef.getDownloadURL();
+      // 2) Creamos un nuevo Course que incluya la URL
+      final courseToSave = updatedCourse.copyWith(picture: imageUrl);
+
+      // 3) Construimos el mapa EXPLÍCITO para Firestore,
+      //    incluyendo nulls en TODOS los campos de fecha
+      final data = <String, dynamic>{
+        'title':           courseToSave.title,
+        'webPage':         courseToSave.webPage,
+        'inscriptionLink': courseToSave.inscriptionLink,
+        'showCourse':      courseToSave.showCourse,
+        'showInscription': courseToSave.showInscription,
+        'picture':         courseToSave.picture,
+        // fechas/hora (si es null → null; si no → Timestamp)
+        'courseStart':      courseToSave.courseStart     != null
+            ? Timestamp.fromDate(courseToSave.courseStart!)     : null,
+        'courseEnd':        courseToSave.courseEnd       != null
+            ? Timestamp.fromDate(courseToSave.courseEnd!)       : null,
+        'inscriptionStart': courseToSave.inscriptionStart!= null
+            ? Timestamp.fromDate(courseToSave.inscriptionStart!): null,
+        'inscriptionEnd':   courseToSave.inscriptionEnd  != null
+            ? Timestamp.fromDate(courseToSave.inscriptionEnd!)  : null,
+        'showFrom':         courseToSave.showFrom        != null
+            ? Timestamp.fromDate(courseToSave.showFrom!)        : null,
+        'showUntil':        courseToSave.showUntil       != null
+            ? Timestamp.fromDate(courseToSave.showUntil!)       : null,
+        'modifiedAt':       Timestamp.fromDate(courseToSave.modifiedAt),
+        // si tu modelo lleva createdAt/deletedAt puedes añadirlos aquí también
+      };
+
+      // 4) Usamos .set(…, merge: true) para que los nulls
+      //     sobreescriban (o eliminen) los campos antiguos
+      await _firestore
+          .collection('courses')
+          .doc(id)
+          .set(data, SetOptions(merge: true));
+    } catch (e) {
+      throw CourseValidationException('Error al actualizar el curso: $e');
     }
+  }
 
-    await _firestore
-        .collection('courses')
-        .doc(id)
-        .update(updatedCourse.copyWith(picture: imageUrl).toMap());
+  Future<void> updateShowCourse(String id) async {
+    final docRef = _firestore.collection('courses').doc(id);
+
+    // Lee el valor actual
+    final snapshot = await docRef.get();
+    final data = snapshot.data();
+    if (data == null) {
+      throw CourseValidationException('Curso no encontrado');
+    }
+    final current = data['showCourse'] as bool? ?? true;
+
+    // Actualiza con el valor contrario
+    await docRef.update({'showCourse': !current});
   }
 }
 

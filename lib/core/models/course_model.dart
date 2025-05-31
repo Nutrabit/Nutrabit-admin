@@ -145,4 +145,17 @@ class Course {
       deletedAtParam: deletedAtParam ?? deletedAt,
     );
   }
+
+}
+
+extension CourseVisibility on Course {
+  // True si está marcado para mostrarse *y*
+  // la hora actual está dentro de [showFrom]–[showUntil] (cuando existen).
+  bool get isVisibleNow {
+    final now = DateTime.now();
+    if (!showCourse) return false;
+    if (showFrom != null && now.isBefore(showFrom!)) return false;
+    if (showUntil != null && now.isAfter(showUntil!)) return false;
+    return true;
+  }
 }
