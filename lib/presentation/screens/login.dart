@@ -134,6 +134,7 @@ class _LoginState extends ConsumerState<Login> {
                             });
                             final email = emailController.text;
                             final password = passwordController.text;
+                            // ignore: unused_local_variable
                             final cred = ref
                                 .read(authProvider.notifier)
                                 .login(email, password)

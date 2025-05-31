@@ -63,11 +63,13 @@ class _PatientListState extends ConsumerState<PatientList> {
               controller: _searchController,
               hintText: 'Buscar paciente...',
               onChanged: (value) {
+                // ignore: unused_result
                 ref.refresh(searchUsersProvider(value));
                 setState(() {});
               },
               onClear: () {
                 _searchController.clear();
+                // ignore: unused_result
                 ref.refresh(searchUsersProvider(''));
                 setState(() {});
               },
