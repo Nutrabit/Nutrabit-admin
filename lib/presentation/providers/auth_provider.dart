@@ -43,6 +43,7 @@ class AuthNotifier extends AsyncNotifier<bool> {
   yield state.value ?? false;
   }
 
+  // ignore: body_might_complete_normally_nullable
   Future<bool?> login(String emailAddress, String password) async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
