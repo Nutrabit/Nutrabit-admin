@@ -20,22 +20,25 @@ class FileModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id, 
       'title': title,
       'type': type.name,
       'url': url,
-      'date': Timestamp.fromDate(date), // Convertir a Timestamp
+      'date': Timestamp.fromDate(date),
       'userId': userId,
     };
   }
 
   factory FileModel.fromJson(Map<String, dynamic> json, {String id = ''}) {
-  return FileModel(
-    id: id,
-    title: json['title'] ?? '',
-    type: FileType.values.firstWhere((e) => e.name == json['type']),
-    url: json['url'] ?? '',
-    date: (json['date'] as Timestamp).toDate(),
-    userId: json['userId'] ?? '',
-  );
-}
+    return FileModel(
+      id: id.isNotEmpty 
+          ? id 
+          : (json['id'] ?? ''),
+      title: json['title'] ?? '',
+      type: FileType.values.firstWhere((e) => e.name == json['type']),
+      url: json['url'] ?? '',
+      date: (json['date'] as Timestamp).toDate(),
+      userId: json['userId'] ?? '',
+    );
+  }
 }
