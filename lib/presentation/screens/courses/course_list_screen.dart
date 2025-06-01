@@ -84,6 +84,15 @@ class _CourseHeaderImage extends StatelessWidget {
       children: [
         const SizedBox(height: 12),
         Image.asset('assets/img/nutriImage.png', height: 140),
+        const SizedBox(height: 8),
+        const Text(
+          '¡Estos son los talleres que estoy dando!',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
@@ -146,7 +155,11 @@ class _CourseCard extends StatelessWidget {
           else
             _CourseImage(url: null),
           _GradientOverlay(),
-          if (!course.isVisibleNow) const _ShowHiddenIndicator(),
+          _ShowHiddenIndicator(
+            showCourse: course.showCourse,
+            showFrom: course.showFrom,
+            showUntil: course.showUntil,
+          ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -240,14 +253,7 @@ class _CardContent extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          course.webPage,
-          style: const TextStyle(color: Colors.white),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Text(
           'Inscripción: ${formatDateRange(course.inscriptionStart, course.inscriptionEnd)}',
           style: const TextStyle(color: Colors.white70, fontSize: 12),
@@ -301,25 +307,51 @@ class _GradientOverlay extends StatelessWidget {
 }
 
 class _ShowHiddenIndicator extends StatelessWidget {
-  const _ShowHiddenIndicator();
+  final bool showCourse;
+  final DateTime? showFrom;
+  final DateTime? showUntil;
+
+  const _ShowHiddenIndicator({
+    required this.showCourse,
+    required this.showFrom,
+    required this.showUntil,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final ahora = DateTime.now();
+    final ocultoManualmente = showCourse == false;
+    final tieneRango = showFrom != null && showUntil != null;
+    final fueraDeRango = tieneRango &&
+        (ahora.isBefore(showFrom!) || ahora.isAfter(showUntil!));
+    if (!ocultoManualmente && !fueraDeRango) {
+      return const SizedBox.shrink();
+    }
+    final label = ocultoManualmente
+        ? 'Oculto manualmente'
+        : 'Oculto programado. El curso se visualizará entre el ${DateFormat('d MMMM y', 'es').format(showFrom!)} y el ${DateFormat('d MMMM y', 'es').format(showUntil!)}';
+    // Si quieres forzar un ancho máximo, añades ConstrainedBox:
     return Positioned(
       top: 8,
       left: 8,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Text(
-          'Oculto',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black54,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+            softWrap: true,     
+            maxLines: null,        
+            overflow: TextOverflow.visible, 
           ),
         ),
       ),
@@ -465,7 +497,7 @@ class CourseOptionsMenu extends ConsumerWidget {
             const PopupMenuItem(value: 'editar', child: Text('Editar')),
             PopupMenuItem(
               value: 'show',
-              child: Text(course.showCourse ? 'Ocultar' : 'Mostrar'),
+              child: Text(course.showCourse ? 'Ocultar manualmente' : 'Mostrar manualmente'),
             ),
             const PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),
           ],
