@@ -101,6 +101,9 @@ class CourseProvider {
     Uint8List? imageBytes,
   }) async {
     try {
+      if (updatedCourse.title.trim().isEmpty) {
+      throw CourseValidationException('El título es requerido');
+    }
       // Se validan rangos de fechas
       _validateAllDateRanges(updatedCourse);
       // Se obtiene la imagen
