@@ -59,7 +59,7 @@ class _AppointmentsScreenState extends ConsumerState<Appointments> {
             ),
           ),
           body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.2),
             child:
                 appointmentEvents.isEmpty
                     ? Center(
