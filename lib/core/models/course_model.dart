@@ -145,4 +145,16 @@ class Course {
       deletedAtParam: deletedAtParam ?? deletedAt,
     );
   }
+
+}
+
+extension CourseVisibility on Course {
+  // Chequea si el curso está visible ahora
+  bool get isVisibleNow {
+    final now = DateTime.now();
+    if (!showCourse) return false;
+    if (showFrom != null && now.isBefore(showFrom!)) return false;
+    if (showUntil != null && now.isAfter(showUntil!)) return false;
+    return true;
+  }
 }
