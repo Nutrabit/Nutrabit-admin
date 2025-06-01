@@ -37,13 +37,14 @@ class CourseListScreen extends ConsumerWidget {
           error: (err, _) => Center(child: Text('Error: $err')),
         ),
       ),
-      floatingActionButton: addCourseButton(
+      floatingActionButton: _AddCourseButton(
         onPressed: () async {
-          // 1. Abrimos la pantalla de creación y esperamos un bool
+          // Se abre la pantalla de creación de curso
           final created = await context.push<bool>('/cursos/crear');
-          // 2. Si CourseCreation hizo pop(true), refrescamos la lista
+          // Si CourseCreation hizo pop(true), se refresca la lista
           if (created == true) {
-            ref.refresh(courseListProvider);
+            // Invalidate es mejor que refresh porque no vuelve a llamar al método
+            ref.invalidate(courseListProvider);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Curso creado correctamente')),
             );
@@ -56,9 +57,10 @@ class CourseListScreen extends ConsumerWidget {
   }
 }
 
-class addCourseButton extends StatelessWidget {
+// Botón flotante para “Agregar curso”
+class _AddCourseButton extends StatelessWidget {
   final VoidCallback onPressed;
-  const addCourseButton({super.key, required this.onPressed});
+  const _AddCourseButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +68,6 @@ class addCourseButton extends StatelessWidget {
       onPressed: onPressed,
       backgroundColor: Color(0xFFD7F9DE),
       foregroundColor: Colors.black,
-
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       child: const Icon(Icons.add),
     );
@@ -109,7 +110,12 @@ class _HoverableCourseCardState extends State<_HoverableCourseCard> {
         scale: _isHovered ? 1.02 : 1.0,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        child: _CourseCard(widget.course),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: _CourseCard(widget.course),
+          ),
+        ),
       ),
     );
   }
@@ -123,7 +129,6 @@ class _CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('d MMMM y, HH:mm', 'es');
-
     String formatDateRange(DateTime? start, DateTime? end) {
       if (start == null || end == null) return 'No disponible';
       return '${dateFormat.format(start)} - ${dateFormat.format(end)}';
@@ -136,47 +141,26 @@ class _CourseCard extends StatelessWidget {
       child: Stack(
         alignment: Alignment.bottomLeft,
         children: [
-          course.picture != null && course.picture!.isNotEmpty
-              ? Image.network(
-                course.picture!,
-                height: 240,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _errorImage(),
-                loadingBuilder:
-                    (context, child, loadingProgress) =>
-                        loadingProgress == null ? child : _loadingImage(),
-              )
-              : _errorImage(),
-          _gradientOverlay(),
-          // Genera un "Oculto" si el curso no está visible
-          if (!course.isVisibleNow)
-            Positioned(
-              top: 8,
-              left: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Oculto',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          if (course.picture.isNotEmpty)
+            _CourseImage(url: course.picture)
+          else
+            _CourseImage(url: null),
+          _GradientOverlay(),
+          if (!course.isVisibleNow) const _ShowHiddenIndicator(),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Padding(
+              // Padding para que no quede pegado a los bordes
+              padding: const EdgeInsets.all(12.0),
+              child: _CardContent(
+                course: course,
+                formatDateRange: formatDateRange,
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: _CardContent(
-              course: course,
-              formatDateRange: formatDateRange,
-            ),
           ),
+          // Menú de opciones del curso
           Positioned(
             top: 8,
             right: 8,
@@ -186,32 +170,54 @@ class _CourseCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _errorImage() => Container(
-    height: 240,
-    color: Colors.grey[300],
-    child: const Center(child: Icon(Icons.broken_image, size: 50)),
-  );
+class _CourseImage extends StatelessWidget {
+  final String? url;
+  const _CourseImage({this.url});
 
-  Widget _loadingImage() => Container(
-    height: 240,
-    color: Colors.grey[300],
-    child: const Center(child: CircularProgressIndicator()),
-  );
-
-  Widget _gradientOverlay() => Container(
-    height: 240,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Colors.black.withAlpha((0.65 * 255).round()),
-          Colors.transparent,
-        ],
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
+  @override
+  Widget build(BuildContext context) {
+    if (url == null || url!.isEmpty) {
+      return AspectRatio(aspectRatio: 16 / 9, child: _ErrorPlaceholderImage());
+    }
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Image.network(
+        url!,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _ErrorPlaceholderImage(),
+        loadingBuilder:
+            (context, child, loadingProgress) =>
+                loadingProgress == null
+                    ? child
+                    : const _LoadingPlaceholderImage(),
       ),
-    ),
-  );
+    );
+  }
+}
+
+class _ErrorPlaceholderImage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[300],
+      child: const Center(child: Icon(Icons.broken_image, size: 50)),
+    );
+  }
+}
+
+class _LoadingPlaceholderImage extends StatelessWidget {
+  const _LoadingPlaceholderImage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[300],
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
 }
 
 // Contenido dentro del card
@@ -235,13 +241,12 @@ class _CardContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        if (course.webPage != null)
-          Text(
-            course.webPage!,
-            style: const TextStyle(color: Colors.white),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+        Text(
+          course.webPage,
+          style: const TextStyle(color: Colors.white),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         const SizedBox(height: 6),
         Text(
           'Inscripción: ${formatDateRange(course.inscriptionStart, course.inscriptionEnd)}',
@@ -254,21 +259,70 @@ class _CardContent extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            if (course.inscriptionLink?.isNotEmpty == true)
+            if (course.inscriptionLink.isNotEmpty == true)
               _LinkButton(
                 icon: Icons.how_to_reg,
                 label: 'Inscribirse',
-                url: course.inscriptionLink!,
+                url: course.inscriptionLink,
               ),
-            if (course.webPage?.isNotEmpty == true)
+            if (course.webPage.isNotEmpty == true)
               _LinkButton(
                 icon: Icons.language,
                 label: 'Web',
-                url: course.webPage!,
+                url: course.webPage,
               ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _GradientOverlay extends StatelessWidget {
+  const _GradientOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.black.withAlpha((0.65 * 255).round()), // 65% negro abajo
+              Colors.transparent, // arriba transparente
+            ],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShowHiddenIndicator extends StatelessWidget {
+  const _ShowHiddenIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 8,
+      left: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Text(
+          'Oculto',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -318,14 +372,14 @@ class CourseOptionsMenu extends ConsumerWidget {
       onSelected: (action) async {
         switch (action) {
           case 'editar':
-            // 1. Abrimos la pantalla de edición y esperamos un bool
+            // Se abre pantalla de edición y esperamos un bool
             final updated = await context.push<bool>(
               '/cursos/editar',
               extra: course, // pasamos el objeto course para no volver a fetch
             );
-            // 2. Si CourseCreation hizo pop(true), refrescamos la lista
+            //  Si CourseCreation hizo pop(true), refrescamos la lista
             if (updated == true) {
-              ref.refresh(courseListProvider);
+              ref.invalidate(courseListProvider);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Curso actualizado correctamente'),
@@ -335,7 +389,7 @@ class CourseOptionsMenu extends ConsumerWidget {
             break;
           case 'show':
             await ref.read(courseProvider).updateShowCourse(course.id);
-            ref.refresh(courseListProvider);
+            ref.invalidate(courseListProvider);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -349,53 +403,59 @@ class CourseOptionsMenu extends ConsumerWidget {
           case 'eliminar':
             showDialog(
               context: context,
-              builder: (_) => AlertDialog(
-                title: const Text('Eliminar curso'),
-                content: const Text('¿Seguro que quieres eliminar este curso?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => context.pop(),
-                    child: const Text('Cancelar'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      // Se cierra el popup
-                      context.pop();
-                      // Se muestra el spinner
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => const Center(child: CircularProgressIndicator()),
-                      );
-
-                      try {
-                        // Borra el curso
-                        // Verifica si tiene imagen y la borra
-                        final imageUrl = course.picture;
-                        await ref.read(courseProvider).deleteCourse(
-                          course.id,
-                          imageUrl: imageUrl,
-                        );
-
-                        // Hace refresh de la lista de cursos
-                        ref.refresh(courseListProvider);
-                      } catch (e) {
-                        debugPrint('Error al eliminar curso: $e');
-                      } finally {
-                        // Cierra el spinner y vuelve a la lista
-                        context.pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Curso eliminado correctamente')),
-                        );
-                      }
-                    },
-                    child: const Text(
-                      'Eliminar',
-                      style: TextStyle(color: Colors.red),
+              builder:
+                  (_) => AlertDialog(
+                    title: const Text('Eliminar curso'),
+                    content: const Text(
+                      '¿Seguro que quieres eliminar este curso?',
                     ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => context.pop(),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // Se cierra el popup
+                          context.pop();
+                          // Se muestra el spinner
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder:
+                                (_) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                          );
+                          try {
+                            // Borra el curso
+                            // Verifica si tiene imagen y la borra
+                            final imageUrl = course.picture;
+                            await ref
+                                .read(courseProvider)
+                                .deleteCourse(course.id, imageUrl: imageUrl);
+
+                            // Hace refresh de la lista de cursos
+                            ref.invalidate(courseListProvider);
+                          } catch (e) {
+                            debugPrint('Error al eliminar curso: $e');
+                          } finally {
+                            // Cierra el spinner y vuelve a la lista
+                            context.pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Curso eliminado correctamente'),
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          'Eliminar',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
             );
             break;
         }

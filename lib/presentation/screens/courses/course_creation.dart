@@ -114,32 +114,27 @@ class _CourseCreationScreenState extends ConsumerState<CourseCreationScreen> {
   }
 
   Future<void> _updateCourse(Course existing) async {
-    // Reconstruimos las fechas/hora combinadas; pueden quedar en null si el usuario las limpió.
-    final DateTime? nuevoStart = _buildDateTime(
+    // Se crean las fechas de inicio y fin del curso y se verifican
+    final DateTime? newStart = _buildDateTime(
       _startDate.value,
       _startTime.value,
     );
-    final DateTime? nuevoEnd = _buildDateTime(_startDate.value, _endTime.value);
+    final DateTime? newEnd = _buildDateTime(_startDate.value, _endTime.value);
 
     String provisionalPictureUrl = existing.picture;
     Uint8List? bytesParaSubir = _selectedImage.value;
-    // Si el usuario ha seleccionado una imagen nueva, la subimos.
+    // Si el usuario selecciona una imagen nueva, se sube.
     if (_selectedImage.value == null && existing.picture.isNotEmpty) {
-      // El usuario pulsó X sobre una imagen que existía → forzamos borrar la URL
       provisionalPictureUrl = '';
-      // bytesParaSubir queda en null, para que el provider sepa "borrar" la imagen
     }
-
-    // Creamos un Course completamente nuevo, copiando todos los campos del antiguo
-    // y asignando explícitamente las fechas/links que acabamos de leer del formulario.
+    // Se Actualiza el curso con los datos nuevos
     final updatedCourse = Course(
       id: existing.id,
       title: _titleController.text.trim(),
       webPage: _webPageController.text.trim(),
-      picture:
-          provisionalPictureUrl, // '' si queremos borrarla, o la URL antigua
-      courseStart: nuevoStart,
-      courseEnd: nuevoEnd,
+      picture: provisionalPictureUrl,
+      courseStart: newStart,
+      courseEnd: newEnd,
       inscriptionStart: _inscriptionStart.value,
       inscriptionEnd: _inscriptionEnd.value,
       showFrom: _showFrom.value,
@@ -175,10 +170,17 @@ class _CourseCreationScreenState extends ConsumerState<CourseCreationScreen> {
   }
 
   DateTime? _buildDateTime(DateTime? date, TimeOfDay? time) {
+    // Si ninguno de los dos está definido, devuelve null
+    if (date == null && time == null) return null;
+
+    // Si ninguno de los dos es null, crea un DateTime
     if (date != null && time != null) {
       return DateTime(date.year, date.month, date.day, time.hour, time.minute);
     }
-    return null;
+    // Si hay alguno null y otro no, lanza una excepción
+    throw CourseValidationException(
+      'Si define la fecha del curso, debe completar también hora de inicio y hora de fin.',
+    );
   }
 
   @override
@@ -208,6 +210,7 @@ class _CourseCreationScreenState extends ConsumerState<CourseCreationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 12),
               _TextFieldSection(
                 controller: _titleController,
                 label: 'Título',
@@ -405,7 +408,7 @@ class ImagePickerField extends StatelessWidget {
                               width: double.infinity,
                               child: Image.memory(
                                 imageBytes,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
@@ -447,7 +450,6 @@ class CourseTitleField extends StatelessWidget {
 
 class WebPageField extends StatelessWidget {
   final TextEditingController controller;
-
   const WebPageField({super.key, required this.controller});
 
   @override
@@ -461,9 +463,7 @@ class WebPageField extends StatelessWidget {
 
 class CourseStartDateField extends StatelessWidget {
   final ValueNotifier<DateTime?> selectedDateNotifier;
-
   const CourseStartDateField({super.key, required this.selectedDateNotifier});
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<DateTime?>(
@@ -512,13 +512,11 @@ class CourseStartDateField extends StatelessWidget {
 class TimeField extends StatelessWidget {
   final String label;
   final ValueNotifier<TimeOfDay?> selectedTimeNotifier;
-
   const TimeField({
     super.key,
     required this.label,
     required this.selectedTimeNotifier,
   });
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<TimeOfDay?>(
@@ -618,7 +616,6 @@ class DateTimeField extends StatelessWidget {
                         ? TimeOfDay.fromDateTime(selectedDateTime)
                         : TimeOfDay.now(),
               );
-
               if (pickedTime != null) {
                 final combined = DateTime(
                   pickedDate.year,
