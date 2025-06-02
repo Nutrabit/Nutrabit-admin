@@ -1,9 +1,12 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:nutrabit_admin/core/models/course_model.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/calendar.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/patient_calendarDay.dart';
+import 'package:nutrabit_admin/presentation/screens/courses/course_creation.dart';
+import 'package:nutrabit_admin/presentation/screens/courses/course_list_screen.dart';
 import 'package:nutrabit_admin/presentation/screens/home.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
@@ -16,10 +19,7 @@ import 'package:nutrabit_admin/presentation/screens/password/forgot_password.dar
 import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
-import 'package:nutrabit_admin/presentation/screens/patients/turnos.dart';
-import 'package:nutrabit_admin/presentation/screens/publicity/altaPubli.dart';
-import 'package:nutrabit_admin/presentation/screens/publicity/detallePubli.dart';
-import 'package:nutrabit_admin/presentation/screens/publicity/publicidades.dart';
+import 'package:nutrabit_admin/presentation/screens/patients/appointments.dart';
 import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -108,22 +108,36 @@ final appRouter = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
-              GoRoute(path: 'turnos', builder: (context, state) => Turnos()),
+              GoRoute(
+                name: 'appointments',
+                path: 'turnos',
+                builder: (context, state) {
+                  final patientId = state.pathParameters['id'];
+                  if (patientId == null) {
+                    return const Scaffold(body: Center(child: Text('Paciente no encontrado')));
+                  }
+                  return Appointments(id: patientId);
+                },
+              ),
             ],
           ),
         ],
       ),
       GoRoute(
-        path: '/publicidades',
-        builder: (context, state) => Publicidades(),
+        path: '/cursos',
+        builder: (context, state) => const CourseListScreen(),
         routes: [
           GoRoute(
-            path: ':id',
-            builder:
-                (context, state) =>
-                    DetallePublicidad(id: state.pathParameters['id'] as String),
+            path: 'crear',
+            builder: (context, state) => const CourseCreationScreen(),
           ),
-          GoRoute(path: 'alta', builder: (context, state) => AltaPublicidad()),
+          GoRoute(
+            path: 'editar',
+            builder: (context, state) {
+              final course = state.extra as Course;
+              return CourseCreationScreen(course: course);
+            },
+          ),
         ],
       ),
       GoRoute(

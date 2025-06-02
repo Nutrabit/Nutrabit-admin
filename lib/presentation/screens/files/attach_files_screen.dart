@@ -21,7 +21,7 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
     'Lista de Compras': FileType.SHOPPING_LIST,
     'Plan de Ejercicios': FileType.EXERCISE_PLAN,
     'Recomendaciones': FileType.RECOMMENDATIONS,
-    'InBody': FileType.IN_BODY,
+    'Mediciones': FileType.MEASUREMENTS,
   };
 
   bool _isUploading = false;
@@ -37,14 +37,24 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
     final files = ref.read(fileProvider).files;
     setState(() => _isUploading = true);
 
-    await FileUploaderService.uploadFiles(
+    final success = await FileUploaderService.uploadFiles(
       files: files,
       patientId: widget.patientId,
-      context: context,
     );
+
+    if (!mounted) return;
 
     ref.read(fileProvider.notifier).clear();
     setState(() => _isUploading = false);
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success
+            ? 'Archivos enviados exitosamente'
+            : 'Error enviando archivos'),
+      ),
+    );
   }
 
   @override
@@ -57,12 +67,6 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Enviar archivos al paciente',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
-        ),
-        centerTitle: true,
-        elevation: 1,
       ),
       body: Stack(
         children: [
@@ -106,12 +110,12 @@ class FileTypeSelector extends StatelessWidget {
   final void Function(String, FileType) onSelect;
 
   const FileTypeSelector({
-    Key? key,
+    super.key,
     required this.fileTypes,
     required this.selectedFiles,
     required this.isUploading,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +150,7 @@ class SelectedFilesList extends StatelessWidget {
   final List<SelectedFile> files;
   final void Function(SelectedFile) onRemove;
 
-  const SelectedFilesList({Key? key, required this.files, required this.onRemove}) : super(key: key);
+  const SelectedFilesList({super.key, required this.files, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -190,35 +194,45 @@ class UploadFilesButton extends StatelessWidget {
   final bool hasFiles;
   final VoidCallback onUpload;
 
-  const UploadFilesButton({Key? key, required this.isUploading, required this.hasFiles, required this.onUpload}) : super(key: key);
+  const UploadFilesButton({
+    super.key,
+    required this.isUploading,
+    required this.hasFiles,
+    required this.onUpload,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: hasFiles && !isUploading ? onUpload : null,
       icon: const Icon(Icons.cloud_upload),
-      label: Text(isUploading ? 'Subiendo...' : 'Subir archivos', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      label: Text(
+        isUploading ? 'Subiendo...' : 'Subir archivos',
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
       style: ButtonStyle(
-        minimumSize: MaterialStateProperty.all(const Size.fromHeight(50)),
-        backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.disabled)) return Colors.grey.shade400;
-          if (states.contains(MaterialState.pressed)) return const Color.fromARGB(255, 165, 70, 90);
+        minimumSize: WidgetStateProperty.all(const Size.fromHeight(50)),
+        backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.disabled)) return Colors.grey.shade400;
+          if (states.contains(WidgetState.pressed)) return const Color.fromARGB(255, 165, 70, 90);
           return const Color(0xFFDC607A);
         }),
-        foregroundColor: MaterialStateProperty.all(Colors.white),
-        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-        elevation: MaterialStateProperty.all(4),
+        foregroundColor: WidgetStateProperty.all(Colors.white),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        elevation: WidgetStateProperty.all(4),
       ),
     );
   }
 }
 
 class LoadingOverlay extends StatelessWidget {
-  const LoadingOverlay({Key? key}) : super(key: key);
+  const LoadingOverlay({super.key});
 
   @override
   Widget build(BuildContext context) => Container(
-        color: Colors.black.withOpacity(0.2),
+        color: const Color.fromARGB(51, 0, 0, 0),
         child: const Center(child: CircularProgressIndicator()),
       );
 }

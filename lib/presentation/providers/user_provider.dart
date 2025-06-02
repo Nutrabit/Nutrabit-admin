@@ -4,15 +4,88 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/models/app_users.dart';
 import '../../core/utils/utils.dart';
 
-final usersProvider = FutureProvider<List<AppUser>>((ref) async {
-  final firestore = FirebaseFirestore.instance;
-  QuerySnapshot snapshot = await firestore.collection('users').get();
-  List<AppUser> users = snapshot.docs.map((doc) => AppUser.fromFirestore(doc)).toList();
+final paginatedUsersProvider =
+    StateNotifierProvider<PaginatedUsersNotifier, AsyncValue<List<AppUser>>>(
+  (ref) => PaginatedUsersNotifier(),
+);
 
-  users.sort((a, b) => normalize(a.name).compareTo(normalize(b.name)));
+class PaginatedUsersNotifier extends StateNotifier<AsyncValue<List<AppUser>>> {
+  PaginatedUsersNotifier() : super(const AsyncLoading()) {
+    fetchInitialUsers();
+  }
 
-  return users;
-});
+  static const int _limit = 10;
+  DocumentSnapshot? _lastDocument;
+  bool _hasMore = true;
+  bool _isFetching = false;
+
+  final List<AppUser> _users = [];
+
+  List<AppUser> get users => _users;
+
+  Future<void> fetchInitialUsers() async {
+    if (_isFetching) return;
+    _isFetching = true;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .orderBy('name')
+          .limit(_limit)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        _lastDocument = snapshot.docs.last;
+        _users.clear();
+        _users.addAll(snapshot.docs.map((doc) => AppUser.fromFirestore(doc)));
+        _sortUsers();
+        state = AsyncData(List.from(_users));
+      } else {
+        state = const AsyncData([]);
+        _hasMore = false;
+      }
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+
+    _isFetching = false;
+  }
+
+  Future<void> fetchMoreUsers() async {
+  if (_isFetching || !_hasMore) return;
+  _isFetching = true;
+
+  try {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .orderBy('name')
+        .startAfterDocument(_lastDocument!)
+        .limit(_limit)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      _lastDocument = snapshot.docs.last;
+      _users.addAll(snapshot.docs.map((doc) => AppUser.fromFirestore(doc)));
+      _sortUsers();
+      state = AsyncData(List.from(_users));
+    } else {
+      _hasMore = false;
+      state = AsyncData(List.from(_users));
+    }
+  } catch (e, st) {
+    state = AsyncError(e, st);
+  }
+
+  _isFetching = false;
+}
+
+  void _sortUsers() {
+    _users.sort((a, b) => normalize(a.name).compareTo(normalize(b.name)));
+  }
+
+  bool get hasMore => _hasMore;
+  bool get isFetching => _isFetching;
+}
 
 Future<void> addUser(AppUser user) async {
   final auth = FirebaseAuth.instance;
@@ -92,14 +165,26 @@ final userStreamProvider = StreamProvider.family<DocumentSnapshot, String>((ref,
 
 final searchUsersProvider = FutureProvider.family<List<AppUser>, String>(
   (ref, query) async {
-    if (query.isEmpty) return []; 
+    if (query.isEmpty) return [];
 
     final firestore = FirebaseFirestore.instance;
     final usersCollection = firestore.collection('users');
-    
-    final usersByName = await usersCollection.orderBy('name').startAt([query]).endAt([query + '\uf8ff']).get();
-    final usersByLastName = await usersCollection.orderBy('lastname').startAt([query]).endAt([query + '\uf8ff']).get();
-    final usersByEmail = await usersCollection.orderBy('email').startAt([query]).endAt([query + '\uf8ff']).get();
+
+    final usersByName = await usersCollection
+        .orderBy('name')
+        .startAt([query])
+        .endAt([query + '\uf8ff'])
+        .get();
+    final usersByLastName = await usersCollection
+        .orderBy('lastname')
+        .startAt([query])
+        .endAt([query + '\uf8ff'])
+        .get();
+    final usersByEmail = await usersCollection
+        .orderBy('email')
+        .startAt([query])
+        .endAt([query + '\uf8ff'])
+        .get();
 
     final Map<String, QueryDocumentSnapshot> usersMap = {};
     for (var doc in usersByName.docs) {
@@ -113,7 +198,6 @@ final searchUsersProvider = FutureProvider.family<List<AppUser>, String>(
     }
 
     final users = usersMap.values.map((doc) => AppUser.fromFirestore(doc)).toList();
-
     users.sort((a, b) => normalize(a.name).compareTo(normalize(b.name)));
     return users;
   },

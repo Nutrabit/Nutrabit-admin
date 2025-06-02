@@ -14,31 +14,47 @@ class PatientList extends ConsumerStatefulWidget {
 }
 
 class _PatientListState extends ConsumerState<PatientList> {
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      final notifier = ref.read(paginatedUsersProvider.notifier);
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (notifier.hasMore && !notifier.isFetching) {
+          notifier.fetchMoreUsers();
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final query = _searchController.text.trim().toLowerCase();
-    final usersAsyncValue = query.isEmpty ? ref.watch(usersProvider) : ref.watch(searchUsersProvider(query));
 
+    final usersAsyncValue = query.isEmpty
+        ? ref.watch(paginatedUsersProvider)
+        : ref.watch(searchUsersProvider(query));
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Pacientes'),
+        title: const Text('Pacientes'),
         leading: const BackButton(),
-        actions: [Logout()],
+        actions: const [Logout()],
       ),
-      
-      body:
-      Column(
+      body: Column(
         children: [
           const SizedBox(height: 25),
           Padding(
@@ -47,29 +63,56 @@ class _PatientListState extends ConsumerState<PatientList> {
               controller: _searchController,
               hintText: 'Buscar paciente...',
               onChanged: (value) {
+                // ignore: unused_result
                 ref.refresh(searchUsersProvider(value));
                 setState(() {});
               },
               onClear: () {
                 _searchController.clear();
+                // ignore: unused_result
                 ref.refresh(searchUsersProvider(''));
                 setState(() {});
               },
             ),
           ),
           Expanded(
-          child: usersAsyncValue.when(
-            loading: () => Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Error: $err')),
-            data: (List<AppUser> users) {
-              if (users.isEmpty) {
-                return const Center(child: Text('No se encontraron pacientes'));
-              }
-              return UserList( users: users );
-            },
-            
-          ),
-          
+            child: usersAsyncValue.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (List<AppUser> users) {
+                if (users.isEmpty) {
+                  return const Center(child: Text('No se encontraron pacientes'));
+                }
+
+                if (query.isEmpty) {
+                  final notifier = ref.read(paginatedUsersProvider.notifier);
+                  final isFetching = notifier.isFetching;
+                  final hasMore = notifier.hasMore;
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: users.length + (hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index < users.length) {
+                        final user = users[index];
+                        return UserListItem(
+                          user: user,
+                          onTap: () => context.push('/pacientes/${user.id}'),
+                        );
+                      } else {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                    },
+                  );
+                } else {
+                  return UserList(users: users);
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -95,10 +138,9 @@ class UserList extends StatelessWidget {
       itemCount: users.length,
       itemBuilder: (context, index) {
         final user = users[index];
-        return UserListItem(user: user,
-          onTap: () {
-            context.push('/pacientes/${user.id}');
-          },
+        return UserListItem(
+          user: user,
+          onTap: () => context.push('/pacientes/${user.id}'),
         );
       },
     );
@@ -113,55 +155,63 @@ class UserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return 
-    
-    Padding(
+    final bool isActive = user.isActive;
+
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color:Colors.white,
-            border: Border.all(color: Color(0xFFDC607A)),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.grey.shade300,
-                backgroundImage:
-                    user.profilePic.isNotEmpty
-                        ? NetworkImage(user.profilePic)
-                        : null,
-                child:
-                    user.profilePic.isEmpty
-                        ? Icon(Icons.person, size: 28, color: Colors.white)
-                        : null,
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  "${user.name.capitalize()} ${user.lastname.capitalize()}",
-                  style: TextStyle(fontSize: 16),
+        onTap: onTap, 
+        child: Opacity(
+          opacity: isActive ? 1.0 : 0.5,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isActive ? Colors.white : Colors.grey.shade200,
+              border: Border.all(color: const Color(0xFFDC607A)),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withAlpha(25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: isActive ? Colors.grey.shade300 : Colors.grey.shade400,
+                  backgroundImage:
+                      user.profilePic.isNotEmpty ? NetworkImage(user.profilePic) : null,
+                  child: user.profilePic.isEmpty
+                      ? Icon(Icons.person, size: 28, color: isActive ? Colors.white : Colors.grey.shade600)
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    "${user.name.capitalize()} ${user.lastname.capitalize()}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isActive ? Colors.black : Colors.grey.shade600,
+                      fontStyle: isActive ? FontStyle.normal : FontStyle.italic,
+                    ),
+                  ),
+                ),
+                if (!isActive)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: Icon(Icons.pause_circle_filled, color: Colors.grey, size: 20),
+                  ),
+              ],
+            ),
           ),
-        ),),
+        ),
+      ),
     );
   }
 }
-
-
 
 class SearchField extends StatelessWidget {
   final TextEditingController controller;
@@ -193,23 +243,21 @@ class SearchField extends StatelessWidget {
             : null,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(27),
-          borderSide: BorderSide(color: Color(0xFFDA958D), width: 1),
+          borderSide: const BorderSide(color: Color(0xFFDA958D), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(27),
-          borderSide: BorderSide(color: Color(0xFFDA958D), width: 2),
+          borderSide: const BorderSide(color: Color(0xFFDA958D), width: 2),
         ),
-
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(27),
-          borderSide: BorderSide(color: Color(0xFFDA958D)),
+          borderSide: const BorderSide(color: Color(0xFFDA958D)),
         ),
       ),
       onChanged: onChanged,
     );
   }
 }
-
 
 class AddPatientButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -218,14 +266,13 @@ class AddPatientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-        onPressed: onPressed,
-        backgroundColor: Color(0xFFD7F9DE),
-        foregroundColor: Colors.black,
-        
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: const Icon(Icons.add),
-      );
+      onPressed: onPressed,
+      backgroundColor: const Color(0xFFD7F9DE),
+      foregroundColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: const Icon(Icons.add),
+    );
   }
 }

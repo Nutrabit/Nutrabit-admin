@@ -11,6 +11,7 @@ InputDecoration textFieldDecoration(String label) {
   ButtonStyle mainButtonDecoration() {
     return ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFFDC607A),
+      foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -34,3 +35,11 @@ InputDecoration textFieldDecoration(String label) {
     suffixText: suffix, // Aquí se añade el sufijo opcional
   );
 }
+
+const titleStyle = const TextStyle(
+  fontFamily: 'Inter',
+  fontSize: 28,
+  fontWeight: FontWeight.bold,
+);
+
+const textStyle = const TextStyle(fontFamily: 'Inter', fontSize: 18);
