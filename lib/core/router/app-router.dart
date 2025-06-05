@@ -1,10 +1,12 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:nutrabit_admin/core/models/course_model.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/calendar.dart';
 import 'package:nutrabit_admin/presentation/screens/calendar/patient_calendarDay.dart';
 import 'package:nutrabit_admin/presentation/screens/courses/course_creation.dart';
+import 'package:nutrabit_admin/presentation/screens/courses/course_list_screen.dart';
 import 'package:nutrabit_admin/presentation/screens/home.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/interest_list.dart';
 import 'package:nutrabit_admin/presentation/screens/login.dart';
@@ -120,7 +122,23 @@ final appRouter = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(path: '/cursos', builder: (context, state) => CourseCreation()),
+      GoRoute(
+        path: '/cursos',
+        builder: (context, state) => const CourseListScreen(),
+        routes: [
+          GoRoute(
+            path: 'crear',
+            builder: (context, state) => const CourseCreationScreen(),
+          ),
+          GoRoute(
+            path: 'editar',
+            builder: (context, state) {
+              final course = state.extra as Course;
+              return CourseCreationScreen(course: course);
+            },
+          ),
+        ],
+      ),
       GoRoute(
         path: '/notificaciones',
         builder: (context, state) => Notificaciones(),

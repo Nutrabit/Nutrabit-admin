@@ -8,96 +8,107 @@ final interestItemsProvider =
 );
 
 class InterestItemsNotifier extends AsyncNotifier<List<InterestItem>> {
-  static const int _limit = 4;
+  static const int _limit = 10;
+  late final CollectionReference<Map<String, dynamic>> _collection;
 
-  late final CollectionReference _collection;
-  DocumentSnapshot? _lastDocument;
-  bool _hasMore = true;
+  int _currentPage = 0;
+  final List<DocumentSnapshot<Map<String, dynamic>>> _cursors = [];
+  bool _hasNextPage = true;
   bool _isFetching = false;
 
   @override
   Future<List<InterestItem>> build() async {
     _collection = FirebaseFirestore.instance.collection('interestItems');
-    return await fetchInitialItems();
+    return _loadPage(0);
   }
 
-  Future<List<InterestItem>> fetchInitialItems() async {
-    _hasMore = true;
-    _lastDocument = null;
-
-    final query = _collection
-        .orderBy('createdAt', descending: true)
-        .limit(_limit);
-
-    final snapshot = await query.get();
-    final docs = snapshot.docs;
-
-    if (docs.isNotEmpty) {
-      _lastDocument = docs.last;
+  Future<List<InterestItem>> _loadPage(int pageIndex) async {
+    if (_isFetching) {
+      return state.value ?? [];
     }
-
-    final items = docs
-        .map((doc) =>
-            InterestItem.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-        .toList();
-
-    state = AsyncValue.data(items);
-    return items;
-  }
-
-  Future<void> fetchMoreItems() async {
-    if (!_hasMore || _isFetching || _lastDocument == null) return;
-
     _isFetching = true;
+    state = const AsyncLoading();
 
-    final query = _collection
-        .orderBy('createdAt', descending: true)
-        .startAfterDocument(_lastDocument!)
-        .limit(_limit);
+    try {
+      // Pedimos _limit + 1 para detectar si hay una página siguiente real
+      Query<Map<String, dynamic>> query = _collection
+          .orderBy('createdAt', descending: true)
+          .limit(_limit + 1);
 
-    final snapshot = await query.get();
-    final docs = snapshot.docs;
+      if (pageIndex > 0 && pageIndex - 1 < _cursors.length) {
+        query = query.startAfterDocument(_cursors[pageIndex - 1]);
+      }
 
-    if (docs.isNotEmpty) {
-      _lastDocument = docs.last;
+      final snapshot = await query.get();
+      final allDocs = snapshot.docs;
+
+      // Si recibimos más de _limit, sabemos que hay siguiente página
+      final bool existeSiguiente = allDocs.length > _limit;
+      _hasNextPage = existeSiguiente;
+
+      // Si hay siguiente, cortamos a los primeros _limit; si no, usamos todos
+      final docs = existeSiguiente
+          ? allDocs.sublist(0, _limit)
+          : allDocs;
+
+      if (docs.isNotEmpty) {
+        if (_cursors.length <= pageIndex) {
+          _cursors.add(docs.last);
+        } else {
+          _cursors[pageIndex] = docs.last;
+        }
+      }
+
+      _currentPage = pageIndex;
+      final items = docs.map((d) => InterestItem.fromMap(d.data(), d.id)).toList();
+      state = AsyncData(items);
+      return items;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return [];
+    } finally {
+      _isFetching = false;
     }
+  }
 
-    if (docs.length < _limit) {
-      _hasMore = false;
-    }
+  Future<void> nextPage() async {
+    if (!_hasNextPage) return;
+    await _loadPage(_currentPage + 1);
+  }
 
-    final newItems = docs
-        .map((doc) =>
-            InterestItem.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-        .toList();
-
-    state = AsyncValue.data([...state.value ?? [], ...newItems]);
-
-    _isFetching = false;
+  Future<void> previousPage() async {
+    if (_currentPage <= 0) return;
+    await _loadPage(_currentPage - 1);
   }
 
   Future<void> addInterestItem(String url, String title) async {
     final docRef = _collection.doc();
     final now = DateTime.now();
 
-    final newItem = InterestItem(
-      id: docRef.id,
-      url: url,
-      title: title,
-      createdAt: now,
-      modifiedAt: now,
-    );
+    await docRef.set({
+      'url': url.trim(),
+      'title': title.trim(),
+      'createdAt': now,
+      'modifiedAt': now,
+    });
 
-    await _collection.doc(newItem.id).set(newItem.toMap());
-
-    state = AsyncValue.data([newItem, ...state.value ?? []]);
+    _cursors.clear();
+    await _loadPage(0);
   }
 
   Future<void> deleteInterestItem(String id) async {
     await _collection.doc(id).delete();
-    state = AsyncValue.data([...?state.value?.where((item) => item.id != id)]);
+    final currentItems = state.value ?? [];
+
+    if (currentItems.length <= 1 && _currentPage > 0) {
+      _cursors.removeLast();
+      await _loadPage(_currentPage - 1);
+    } else {
+      await _loadPage(_currentPage);
+    }
   }
 
-  bool get hasMore => _hasMore;
-  bool get isFetching => _isFetching;
+  int get currentPage => _currentPage;
+  bool get hasNextPage => _hasNextPage;
+  bool get hasPreviousPage => _currentPage > 0;
 }

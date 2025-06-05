@@ -1,10 +1,13 @@
 // interest_item_dialogs.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/providers/interest_item_provider.dart';
+import 'package:flutter/foundation.dart'; // Para usar kIsWeb
 
-Future<void> showDeleteItemDialog(BuildContext context, WidgetRef ref, String itemId) {
-  return showDialog(
+Future<bool?> showDeleteItemDialog(
+    BuildContext context, WidgetRef ref, String itemId) {
+  return showDialog<bool>(
     context: context,
     builder: (ctx) {
       bool isLoading = false;
@@ -25,14 +28,16 @@ Future<void> showDeleteItemDialog(BuildContext context, WidgetRef ref, String it
                 )
               else ...[
                 TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
+                  onPressed: () => Navigator.of(ctx).pop(false),
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
                   onPressed: () async {
                     setState(() => isLoading = true);
                     await ref.read(interestItemsProvider.notifier).deleteInterestItem(itemId);
-                    if (context.mounted) Navigator.of(ctx).pop();
+                    if (context.mounted) {
+                      Navigator.of(ctx).pop(true);
+                    }
                   },
                   child: const Text('Eliminar'),
                 ),
@@ -49,7 +54,7 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
   final TextEditingController urlController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
 
-  return showDialog(
+  return showDialog<void>(
     context: context,
     builder: (ctx) {
       bool isLoading = false;
@@ -65,7 +70,7 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
                   decoration: const InputDecoration(
                     labelText: 'Título',
                   ),
-                  autofocus: true,
+                  autofocus: !kIsWeb,
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -100,9 +105,10 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
                     if (url.isEmpty || title.isEmpty) return;
 
                     setState(() => isLoading = true);
-
                     await ref.read(interestItemsProvider.notifier).addInterestItem(url, title);
-                    if (context.mounted) Navigator.of(ctx).pop();
+                    if (context.mounted) {
+                      Navigator.of(ctx).pop();
+                    }
                   },
                   child: const Text('Confirmar'),
                 ),
@@ -114,4 +120,3 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
     },
   );
 }
-

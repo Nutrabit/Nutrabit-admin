@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:nutrabit_admin/presentation/providers/interest_item_provider.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/interest_item_dialogs.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class InterestList extends ConsumerStatefulWidget {
   const InterestList({super.key});
@@ -12,37 +17,35 @@ class InterestList extends ConsumerStatefulWidget {
 }
 
 class _InterestListState extends ConsumerState<InterestList> {
-  final _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController.addListener(() {
-      final notifier = ref.read(interestItemsProvider.notifier);
-
-      if (_scrollController.position.pixels >=
-              _scrollController.position.maxScrollExtent - 200 &&
-          notifier.hasMore &&
-          !notifier.isFetching) {
-        notifier.fetchMoreItems();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  bool _dialogVisible = false;
 
   @override
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(interestItemsProvider);
-    final notifier = ref.watch(interestItemsProvider.notifier);
+    final notifier = ref.read(interestItemsProvider.notifier);
+    final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recomendaciones'), centerTitle: true),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_rounded, color: Colors.pink),
+            tooltip: 'Agregar recomendación',
+            onPressed: () async {
+              setState(() => _dialogVisible = true);
+              await showAddInterestDialog(context, ref);
+              setState(() => _dialogVisible = false);
+            },
+          ),
+        ],
+      ),
+      backgroundColor: const Color(0xFFFFF0F6),
       body: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
@@ -51,57 +54,124 @@ class _InterestListState extends ConsumerState<InterestList> {
             return const Center(child: Text('No hay ítems aún.'));
           }
 
-          return ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            itemCount: items.length + 1,
-            itemBuilder: (context, index) {
-              if (index == items.length) {
-                return notifier.hasMore
-                    ? const Center(child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: CircularProgressIndicator(),
-                      ))
-                    : const SizedBox.shrink();
-              }
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final url = item.url.toLowerCase();
 
-              final item = items[index];
-              final url = item.url.toLowerCase();
+                    if (_dialogVisible) return const SizedBox.shrink();
 
-              if (url.contains('youtube')) {
-                return YoutubeListItem(
-                  itemId: item.id,
-                  itemTitle: item.title,
-                  youtubeUrl: item.url,
-                  onDelete: () => showDeleteItemDialog(context, ref, item.id),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
+                    if (url.contains('youtube')) {
+                      return YoutubeEmbedCard(
+                        itemId: item.id,
+                        itemTitle: item.title,
+                        youtubeUrl: item.url,
+                        onDelete: () async {
+                          if (!mounted) return;
+                          setState(() => _dialogVisible = true);
+                          final confirmed = await showDeleteItemDialog(context, ref, item.id);
+                          setState(() => _dialogVisible = false);
+                          if (!mounted) return;
+                          if (confirmed == true) {
+                            await notifier.deleteInterestItem(item.id);
+                            if (!mounted) return;
+                            scaffoldMessengerKey.currentState?.showSnackBar(
+                              const SnackBar(content: Text('Elemento eliminado')),
+                            );
+                          }
+                        },
+                      );
+                    } else if (url.contains('spotify')) {
+                      return SpotifyEmbedCard(
+                        itemId: item.id,
+                        itemTitle: item.title,
+                        spotifyUrl: item.url,
+                        onDelete: () async {
+                          setState(() => _dialogVisible = true);
+                          final confirmed = await showDeleteItemDialog(context, ref, item.id);
+                          setState(() => _dialogVisible = false);
+                          if (!mounted) return;
+                          if (confirmed == true) {
+                            await notifier.deleteInterestItem(item.id);
+                            if (!mounted) return;
+                            scaffoldMessengerKey.currentState?.showSnackBar(
+                              const SnackBar(content: Text('Elemento eliminado')),
+                            );
+                          }
+                        },
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: notifier.hasPreviousPage
+                          ? () {
+                              notifier.previousPage();
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.pink,
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: Colors.pink),
+                        ),
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 16),
+                    ),
+                    const SizedBox(width: 24),
+                    Text(
+                      'Página ${ref.watch(interestItemsProvider.notifier).currentPage + 1}',
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(width: 24),
+                    ElevatedButton(
+                      onPressed: notifier.hasNextPage
+                          ? () {
+                              notifier.nextPage();
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.pink,
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: Colors.pink),
+                        ),
+                      ),
+                      child: const Icon(Icons.arrow_forward_ios, size: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showAddInterestDialog(context, ref),
-        backgroundColor: const Color(0xFFD7F9DE),
-        foregroundColor: Colors.black,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
-
-// Youtube
-class YoutubeListItem extends StatefulWidget {
+class YoutubeEmbedCard extends StatefulWidget {
   final String itemId;
   final String itemTitle;
   final String youtubeUrl;
   final VoidCallback onDelete;
 
-  const YoutubeListItem({
+  const YoutubeEmbedCard({
     super.key,
     required this.itemId,
     required this.itemTitle,
@@ -110,12 +180,16 @@ class YoutubeListItem extends StatefulWidget {
   });
 
   @override
-  State<YoutubeListItem> createState() => _InterestListItemState();
+  State<YoutubeEmbedCard> createState() => _YoutubeEmbedCardState();
 }
 
-class _InterestListItemState extends State<YoutubeListItem> {
+class _YoutubeEmbedCardState extends State<YoutubeEmbedCard>
+    with AutomaticKeepAliveClientMixin {
   YoutubePlayerController? _controller;
   bool _isPlaying = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   String? extractYoutubeVideoId(String url) {
     final regExp = RegExp(r'(?:v=|\/)([0-9A-Za-z_-]{11})');
@@ -146,72 +220,204 @@ class _InterestListItemState extends State<YoutubeListItem> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final videoId = extractYoutubeVideoId(widget.youtubeUrl);
     final thumbnailUrl = videoId != null
         ? 'https://img.youtube.com/vi/$videoId/hqdefault.jpg'
         : null;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.itemTitle,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: widget.onDelete,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (_isPlaying && _controller != null)
-              YoutubePlayer(controller: _controller!, aspectRatio: 16 / 9)
-            else if (thumbnailUrl != null)
-              Stack(
-                children: [
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Image.network(thumbnailUrl, fit: BoxFit.cover),
-                  ),
-                  Positioned.fill(
-                    child: Material(
-                      color: Colors.black38,
-                      child: InkWell(
-                        onTap: _startPlaying,
-                        child: const Center(
-                          child: Icon(
-                            Icons.play_circle_fill,
-                            color: Colors.white,
-                            size: 64,
+    return RecommendationCard(
+      title: widget.itemTitle,
+      source: "YouTube",
+      onDelete: widget.onDelete,
+      child: _isPlaying && _controller != null
+          ? YoutubePlayer(controller: _controller!, aspectRatio: 16 / 9)
+          : GestureDetector(
+              onTap: _startPlaying,
+              child: thumbnailUrl != null
+                  ? Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: CachedNetworkImage(
+                            imageUrl: thumbnailUrl,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            else
-              const SizedBox(
-                height: 200,
-                child: Center(child: Text('Video no válido')),
-              ),
-          ],
+                        const Icon(Icons.play_circle_fill_rounded,
+                            color: Colors.white, size: 64),
+                      ],
+                    )
+                  : const Center(child: Text("Video no válido")),
+            ),
+    );
+  }
+}
+
+class SpotifyEmbedCard extends StatefulWidget {
+  final String itemId;
+  final String itemTitle;
+  final String spotifyUrl;
+  final VoidCallback onDelete;
+
+  const SpotifyEmbedCard({
+    super.key,
+    required this.itemId,
+    required this.itemTitle,
+    required this.spotifyUrl,
+    required this.onDelete,
+  });
+
+  @override
+  State<SpotifyEmbedCard> createState() => _SpotifyEmbedCardState();
+}
+
+class _SpotifyEmbedCardState extends State<SpotifyEmbedCard>
+    with AutomaticKeepAliveClientMixin {
+  late final WebViewController _controller;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  String _generateSpotifyHtml(String embedUrl) {
+    return '''
+      <!DOCTYPE html>
+      <html>
+      <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+      <body style="margin:0;padding:0;">
+        <iframe src="$embedUrl"
+          width="100%" height="352" frameborder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy">
+        </iframe>
+      </body>
+      </html>
+    ''';
+  }
+
+  void openSpotifyIntent(String id, String type) async {
+    try {
+      final intent = AndroidIntent(
+        action: 'action_view',
+        data: 'spotify://$type/$id',
+        package: 'com.spotify.music',
+      );
+      await intent.launch();
+    } catch (e) {
+      final fallback = 'https://open.spotify.com/$type/$id';
+      if (await canLaunchUrl(Uri.parse(fallback))) {
+        await launchUrl(
+          Uri.parse(fallback),
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final uri = Uri.tryParse(widget.spotifyUrl);
+    final segments = uri?.pathSegments;
+    if (segments == null || segments.length < 2) return;
+    final type = segments[0];
+    final id = segments[1].split('?').first;
+    final embedUrl = 'https://open.spotify.com/embed/$type/$id';
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (request) {
+            if (request.url.contains("spotify.com")) {
+              openSpotifyIntent(id, type);
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
         ),
+      )
+      ..loadHtmlString(_generateSpotifyHtml(embedUrl));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return RecommendationCard(
+      title: widget.itemTitle,
+      source: "Spotify",
+      onDelete: widget.onDelete,
+      child: SizedBox(
+        height: 352,
+        child: WebViewWidget(controller: _controller),
       ),
     );
   }
 }
 
-// Spotify
+class RecommendationCard extends StatelessWidget {
+  final String title;
+  final String source;
+  final Widget child;
+  final VoidCallback onDelete;
+
+  const RecommendationCard({
+    super.key,
+    required this.title,
+    required this.source,
+    required this.child,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            title: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                "Fuente: $source",
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.pink),
+              tooltip: "Eliminar recomendación",
+              onPressed: onDelete,
+            ),
+          ),
+          const Divider(height: 1),
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
