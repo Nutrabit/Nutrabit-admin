@@ -120,7 +120,7 @@ class _NotificationCreationScreenState
   Future<void> _submit() async {
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
-    final topic = _topicController.text.trim();
+    final topic = _selectedTopic?.trim() ?? '';
     final repeatEvery = int.tryParse(_repeatEveryController.text.trim());
     final urlIcon =
         _urlIconController.text.trim().isNotEmpty
@@ -133,7 +133,7 @@ class _NotificationCreationScreenState
     final model = NotificationModel(
       id: '',
       title: title,
-      topic: topic.isEmpty ? 'all' : topic,
+      topic: topic.isEmpty ? 'ALL' : topic,
       description: description,
       scheduledTime: scheduledTime!,
       endDate: endDate,
