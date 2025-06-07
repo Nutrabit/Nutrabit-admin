@@ -26,6 +26,7 @@ class PatientDetail extends ConsumerWidget {
         final data = snapshot.data() as Map<String, dynamic>;
         final name = data['name'] ?? 'Sin nombre';
         final lastname = data['lastname'] ?? '';
+        final dni = data['dni'] ??'';
         final email = data['email'] ?? '-';
         final weightValue = data['weight'];
         final heightValue = data['height'];
@@ -51,6 +52,7 @@ class PatientDetail extends ConsumerWidget {
                   weight: weight,
                   height: height,
                   profilePic: profilePic,
+                  dni: dni,
                   onEdit: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => PatientModifier(id: id)),
@@ -81,7 +83,7 @@ class PatientDetail extends ConsumerWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  final String name, email, age, weight, height;
+  final String name, email, age, weight, height, dni;
   final String? profilePic;
   final VoidCallback onEdit;
 
@@ -93,6 +95,7 @@ class _InfoCard extends StatelessWidget {
     required this.height,
     this.profilePic,
     required this.onEdit,
+    required this.dni
   });
 
   @override
@@ -125,6 +128,9 @@ class _InfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Divider(),
+                    Text('DNI: $dni', style: const TextStyle(color: Colors.black54)),
+                    const Divider(),
                     Text(email, style: const TextStyle(color: Colors.black54)),
                     const Divider(),
                     Text('Edad: $age', style: const TextStyle(color: Colors.black54)),
@@ -151,7 +157,7 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
-/// Widget con botones de acción para enviar archivos, ver calendario
+/// Widget con botones
 class PatientActions extends StatelessWidget {
   final String id;
 
@@ -227,7 +233,7 @@ class AccountStatusButton extends StatelessWidget {
       },
       style: mainButtonDecoration(),
       child: Text(
-        isActive ? 'deshabilitar cuenta' : 'habilitar cuenta',
+        isActive ? 'Deshabilitar cuenta' : 'Habilitar cuenta',
         style: const TextStyle(color: Colors.white),
       ),
     );
@@ -273,6 +279,8 @@ class AccountStatusButton extends StatelessWidget {
                         Navigator.of(dialogContext).pop();
                         await ref.read(userProvider.notifier).updateUserState(id, !isActive);
                         _showResultDialog(context);
+                        ref.refresh(paginatedUsersProvider);
+
                       },
                       style: OutlinedButton.styleFrom(
                         backgroundColor: const Color(0xFFB5D6B2),
@@ -342,7 +350,6 @@ class AccountStatusButton extends StatelessWidget {
   }
 }
 
-/// Botón reutilizable para las acciones del paciente
 class PatientActionButton extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
