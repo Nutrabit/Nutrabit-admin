@@ -48,4 +48,15 @@ class NotificationService {
       await updateNotification(notification);
     }
   }
+
+  Future<void> deleteNotification(String id) async {
+  await _db.collection('notifications').doc(id).delete();
 }
+}
+final notificationsStreamProvider = StreamProvider.autoDispose<List<NotificationModel>>((ref) {
+  final service = ref.watch(notificationServiceProvider);
+  return service.getNotificationsStream();
+});
+
+final selectedTopicProvider = StateProvider<String?>((ref) => null);
+

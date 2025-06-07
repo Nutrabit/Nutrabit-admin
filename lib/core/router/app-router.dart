@@ -13,6 +13,7 @@ import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.d
 import 'package:nutrabit_admin/presentation/screens/login.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notification_creation.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/notifications_list_screen.dart';
 import 'package:nutrabit_admin/presentation/screens/password/change_password.dart';
 import 'package:nutrabit_admin/presentation/screens/password/forgot_password.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_detail.dart';
@@ -141,8 +142,9 @@ final appRouter = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        name: 'notifications',
         path: '/notificaciones',
-        builder: (context, state) => Notificaciones(),
+        builder: (context, state) => NotificationsListScreen(),
         routes: [
           GoRoute(
             path: 'crear',
