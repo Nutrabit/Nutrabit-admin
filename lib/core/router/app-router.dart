@@ -11,8 +11,7 @@ import 'package:nutrabit_admin/presentation/screens/home.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
 import 'package:nutrabit_admin/presentation/screens/login.dart';
-import 'package:nutrabit_admin/presentation/screens/notifications/altaNotificacion.dart';
-import 'package:nutrabit_admin/presentation/screens/notifications/detalleNotificacion.dart';
+import 'package:nutrabit_admin/presentation/screens/notifications/notification_creation.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notificaciones.dart';
 import 'package:nutrabit_admin/presentation/screens/password/change_password.dart';
 import 'package:nutrabit_admin/presentation/screens/password/forgot_password.dart';
@@ -21,6 +20,7 @@ import 'package:nutrabit_admin/presentation/screens/patients/patient_list.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/patient_registration.dart';
 import 'package:nutrabit_admin/presentation/screens/patients/appointments.dart';
 import 'package:nutrabit_admin/presentation/screens/files/attach_files_screen.dart';
+import 'package:nutrabit_admin/core/models/notification_model.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
@@ -145,15 +145,16 @@ final appRouter = Provider<GoRouter>((ref) {
         builder: (context, state) => Notificaciones(),
         routes: [
           GoRoute(
-            path: ':id',
+            path: 'crear',
             builder:
-                (context, state) => DetalleNotificacion(
-                  id: state.pathParameters['id'] as String,
-                ),
+                (context, state) => const NotificationCreation(),
           ),
           GoRoute(
-            path: 'alta',
-            builder: (context, state) => AltaNotificacion(),
+            path: 'editar',
+            builder: (context, state) {
+              final notification = state.extra as NotificationModel;
+              return NotificationCreation(notification: notification);
+            },
           ),
         ],
       ),
