@@ -5,9 +5,9 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'package:nutrabit_admin/presentation/providers/interest_item_provider.dart';
 import 'package:nutrabit_admin/presentation/screens/interest_list/interest_item_dialogs.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class InterestList extends ConsumerStatefulWidget {
   const InterestList({super.key});
@@ -66,7 +66,8 @@ class _InterestListState extends ConsumerState<InterestList> {
 
                     if (_dialogVisible) return const SizedBox.shrink();
 
-                    if (url.contains('youtube')) {
+                    if ((url.contains('youtube')) ||
+                        (url.contains('youtu.be'))) {
                       return YoutubeEmbedCard(
                         itemId: item.id,
                         itemTitle: item.title,
@@ -74,14 +75,20 @@ class _InterestListState extends ConsumerState<InterestList> {
                         onDelete: () async {
                           if (!mounted) return;
                           setState(() => _dialogVisible = true);
-                          final confirmed = await showDeleteItemDialog(context, ref, item.id);
+                          final confirmed = await showDeleteItemDialog(
+                            context,
+                            ref,
+                            item.id,
+                          );
                           setState(() => _dialogVisible = false);
                           if (!mounted) return;
                           if (confirmed == true) {
                             await notifier.deleteInterestItem(item.id);
                             if (!mounted) return;
                             scaffoldMessengerKey.currentState?.showSnackBar(
-                              const SnackBar(content: Text('Elemento eliminado')),
+                              const SnackBar(
+                                content: Text('Elemento eliminado'),
+                              ),
                             );
                           }
                         },
@@ -93,20 +100,49 @@ class _InterestListState extends ConsumerState<InterestList> {
                         spotifyUrl: item.url,
                         onDelete: () async {
                           setState(() => _dialogVisible = true);
-                          final confirmed = await showDeleteItemDialog(context, ref, item.id);
+                          final confirmed = await showDeleteItemDialog(
+                            context,
+                            ref,
+                            item.id,
+                          );
                           setState(() => _dialogVisible = false);
                           if (!mounted) return;
                           if (confirmed == true) {
                             await notifier.deleteInterestItem(item.id);
                             if (!mounted) return;
                             scaffoldMessengerKey.currentState?.showSnackBar(
-                              const SnackBar(content: Text('Elemento eliminado')),
+                              const SnackBar(
+                                content: Text('Elemento eliminado'),
+                              ),
                             );
                           }
                         },
                       );
                     } else {
-                      return const SizedBox.shrink();
+                      return GenericLinkCard(
+                        itemId: item.id,
+                        itemTitle: item.title,
+                        linkUrl: item.url,
+                        onDelete: () async {
+                          setState(() => _dialogVisible = true);
+                          final confirmed = await showDeleteItemDialog(
+                            context,
+                            ref,
+                            item.id,
+                          );
+                          setState(() => _dialogVisible = false);
+                          if (!mounted) return;
+                          if (confirmed == true) {
+                            await notifier.deleteInterestItem(item.id);
+                            if (!mounted) return;
+                            scaffoldMessengerKey.currentState?.showSnackBar(
+                              const SnackBar(
+                                content: Text('Elemento eliminado'),
+                              ),
+                            );
+                          }
+                        },
+                      );
                     }
                   },
                 ),
@@ -117,11 +153,12 @@ class _InterestListState extends ConsumerState<InterestList> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: notifier.hasPreviousPage
-                          ? () {
-                              notifier.previousPage();
-                            }
-                          : null,
+                      onPressed:
+                          notifier.hasPreviousPage
+                              ? () {
+                                notifier.previousPage();
+                              }
+                              : null,
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.pink,
                         backgroundColor: Colors.white,
@@ -139,11 +176,12 @@ class _InterestListState extends ConsumerState<InterestList> {
                     ),
                     const SizedBox(width: 24),
                     ElevatedButton(
-                      onPressed: notifier.hasNextPage
-                          ? () {
-                              notifier.nextPage();
-                            }
-                          : null,
+                      onPressed:
+                          notifier.hasNextPage
+                              ? () {
+                                notifier.nextPage();
+                              }
+                              : null,
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.pink,
                         backgroundColor: Colors.white,
@@ -222,35 +260,41 @@ class _YoutubeEmbedCardState extends State<YoutubeEmbedCard>
   Widget build(BuildContext context) {
     super.build(context);
     final videoId = extractYoutubeVideoId(widget.youtubeUrl);
-    final thumbnailUrl = videoId != null
-        ? 'https://img.youtube.com/vi/$videoId/hqdefault.jpg'
-        : null;
+    final thumbnailUrl =
+        videoId != null
+            ? 'https://img.youtube.com/vi/$videoId/hqdefault.jpg'
+            : null;
 
     return RecommendationCard(
       title: widget.itemTitle,
       source: "YouTube",
       onDelete: widget.onDelete,
-      child: _isPlaying && _controller != null
-          ? YoutubePlayer(controller: _controller!, aspectRatio: 16 / 9)
-          : GestureDetector(
-              onTap: _startPlaying,
-              child: thumbnailUrl != null
-                  ? Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: CachedNetworkImage(
-                            imageUrl: thumbnailUrl,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const Icon(Icons.play_circle_fill_rounded,
-                            color: Colors.white, size: 64),
-                      ],
-                    )
-                  : const Center(child: Text("Video no válido")),
-            ),
+      child:
+          _isPlaying && _controller != null
+              ? YoutubePlayer(controller: _controller!, aspectRatio: 16 / 9)
+              : GestureDetector(
+                onTap: _startPlaying,
+                child:
+                    thumbnailUrl != null
+                        ? Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: CachedNetworkImage(
+                                imageUrl: thumbnailUrl,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.play_circle_fill_rounded,
+                              color: Colors.white,
+                              size: 64,
+                            ),
+                          ],
+                        )
+                        : const Center(child: Text("Video no válido")),
+              ),
     );
   }
 }
@@ -325,20 +369,21 @@ class _SpotifyEmbedCardState extends State<SpotifyEmbedCard>
     final id = segments[1].split('?').first;
     final embedUrl = 'https://open.spotify.com/embed/$type/$id';
 
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (request) {
-            if (request.url.contains("spotify.com")) {
-              openSpotifyIntent(id, type);
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadHtmlString(_generateSpotifyHtml(embedUrl));
+    _controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onNavigationRequest: (request) {
+                if (request.url.contains("spotify.com")) {
+                  openSpotifyIntent(id, type);
+                  return NavigationDecision.prevent;
+                }
+                return NavigationDecision.navigate;
+              },
+            ),
+          )
+          ..loadHtmlString(_generateSpotifyHtml(embedUrl));
   }
 
   @override
@@ -358,14 +403,14 @@ class _SpotifyEmbedCardState extends State<SpotifyEmbedCard>
 
 class RecommendationCard extends StatelessWidget {
   final String title;
-  final String source;
+  final String? source;
   final Widget child;
   final VoidCallback onDelete;
 
   const RecommendationCard({
     super.key,
     required this.title,
-    required this.source,
+    this.source,
     required this.child,
     required this.onDelete,
   });
@@ -379,31 +424,35 @@ class RecommendationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 3),
-          )
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
         ],
       ),
       child: Column(
         children: [
           ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            title: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
             ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                "Fuente: $source",
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ),
+            title: Text(title, style: Theme.of(context).textTheme.titleMedium),
+            subtitle:
+                (source != null && source!.isNotEmpty)
+                    ? Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        "Fuente: $source",
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                    : null,
             trailing: IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.pink),
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: Colors.pink,
+              ),
               tooltip: "Eliminar recomendación",
               onPressed: onDelete,
             ),
@@ -417,6 +466,113 @@ class RecommendationCard extends StatelessWidget {
             child: child,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class GenericLinkCard extends StatelessWidget {
+  final String itemId;
+  final String itemTitle;
+  final String linkUrl;
+  final VoidCallback onDelete;
+
+  const GenericLinkCard({
+    super.key,
+    required this.itemId,
+    required this.itemTitle,
+    required this.linkUrl,
+    required this.onDelete,
+  });
+
+  String getDomain(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.host.replaceFirst('www.', '');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String getFaviconUrl(String url) {
+  try {
+    final uri = Uri.parse(url);
+    final domain = uri.host;
+
+    // Para test en emulador con localhost descomentar todo el if para que use la cloud function que es un proxy que obtiene los favicon
+    // volver a comentar si no se usa para evitar llamadas innecesarias a la db 
+
+    
+    //if (kIsWeb && (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1')) {
+      //const projectId = 'nutrabit-7a4ce';
+      //const region = 'us-central1';
+      //return 'https://$region-$projectId.cloudfunctions.net/faviconProxy?domain=$domain';
+    //}
+
+    return 'https://www.google.com/s2/favicons?domain=$domain&sz=64';
+  } catch (_) {
+    return '';
+  }
+  }
+
+  void _openLink() async {
+    final uri = Uri.tryParse(linkUrl);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final domain = getDomain(linkUrl);
+    final favicon = getFaviconUrl(linkUrl);
+
+    return RecommendationCard(
+      title: itemTitle,
+      source: null,
+      onDelete: onDelete,
+      child: InkWell(
+        onTap: _openLink,
+        child: Container(
+          color: Colors.grey.shade50,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  color: Colors.white,
+                  child: Image.network(
+                    favicon,
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (_, __, ___) => const Icon(
+                          Icons.cloud,
+                          size: 40,
+                          color: Color.fromARGB(255, 143, 180, 248),
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  domain,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4, right: 8),
+                child: const Icon(
+                  Icons.open_in_new_rounded,
+                  color: Color.fromARGB(255, 143, 180, 248),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
