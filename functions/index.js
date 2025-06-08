@@ -36,7 +36,7 @@ exports.taskRunner = onSchedule("* * * * *", async (_context) => {
     const data = doc.data();
 
     const message = {
-      topic: "all",
+      topic: data.topic,
       notification: {
         title: data.title,
         body: data.description,
