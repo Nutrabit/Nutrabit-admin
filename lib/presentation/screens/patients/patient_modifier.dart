@@ -171,6 +171,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
 
         return Scaffold(
           appBar: AppBar(
+            centerTitle: true,
             title: const Text('Modificar paciente'),
             leading: const BackButton(),
             backgroundColor: Colors.white,
