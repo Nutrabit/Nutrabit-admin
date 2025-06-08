@@ -45,15 +45,11 @@ class _NotificationCreationScreenState
     _titleController.text = notification.title;
     _descriptionController.text = notification.description;
     _urlIconController.text = notification.urlIcon ?? '';
-    // _topicController.selection = notification.topic as TextSelection;
     _selectedTopic = notification.topic;
     _repeatEveryController.text = notification.repeatEvery?.toString() ?? '';
     _scheduledTime.value = notification.scheduledTime;
     _endDate.value = notification.endDate;
     _cancel.value = notification.cancel;
-
-    // Solo si agregás el campo `sent` en el modelo
-    // _sent.value = notification.sent;
   }
 
   @override
@@ -301,7 +297,6 @@ class _TopicDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      // value: validTopic.contains(selectedTopic) ? selectedTopic : null,
       value: selectedTopic,
       decoration: inputDecoration('Destino'),
       style: const TextStyle(
@@ -309,18 +304,10 @@ class _TopicDropdown extends StatelessWidget {
         color: Colors.black87,
         fontWeight: FontWeight.w400,
       ),
-      //   items: validTopic
-      //       .map((topic) => DropdownMenuItem(
-      //             value: topic.name,
-      //             child: Text(topic.description),
-      //           ))
-      //       .toList(),
-      //   onChanged: onChanged,
-      // );
       items:
           validTopic.map((topic) {
             return DropdownMenuItem<String>(
-              value: topic.name, // ✅ Guardar el nombre del enum como String
+              value: topic.name,
               child: Text(topic.description),
             );
           }).toList(),
