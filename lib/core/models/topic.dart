@@ -11,7 +11,7 @@ extension TopicExtension on Topic {
   String get description {
     switch (this) {
       case Topic.ALL:
-        return "all";
+        return "General";
       case Topic.PERDER_GRASA:
         return "Perder grasa";
       case Topic.MANTENER_PESO:

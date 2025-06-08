@@ -37,7 +37,7 @@ class _NotificationCreationScreenState
     super.initState();
     _initializeFields();
   }
-  
+
   void _initializeFields() {
     final notification = widget.notification;
     if (notification == null) return;
@@ -45,7 +45,8 @@ class _NotificationCreationScreenState
     _titleController.text = notification.title;
     _descriptionController.text = notification.description;
     _urlIconController.text = notification.urlIcon ?? '';
-    _topicController.text = notification.topic;
+    // _topicController.selection = notification.topic as TextSelection;
+    _selectedTopic = notification.topic;
     _repeatEveryController.text = notification.repeatEvery?.toString() ?? '';
     _scheduledTime.value = notification.scheduledTime;
     _endDate.value = notification.endDate;
@@ -62,7 +63,9 @@ class _NotificationCreationScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Editar notificación' : 'Nueva notificación'),
+        backgroundColor: const Color(0xFFFEECDA),
       ),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
@@ -76,7 +79,9 @@ class _NotificationCreationScreenState
               ),
               const SizedBox(height: 12),
               _TopicDropdown(
-                selectedTopic: _selectedTopic, onChanged: (value) => setState(() => _selectedTopic = value), validTopic: topic
+                selectedTopic: _selectedTopic,
+                onChanged: (value) => setState(() => _selectedTopic = value),
+                validTopic: topic,
               ),
               const SizedBox(height: 12),
               _TextFieldSection(
@@ -95,13 +100,13 @@ class _NotificationCreationScreenState
                 selectedDateTimeNotifier: _endDate,
               ),
               const SizedBox(height: 12),
-              if (isEditing) SwitchListTile(
-                title: const Text('Pausar'),
-                value: _cancel.value,
-                onChanged: (v) => setState(() => _cancel.value = v),
-              ),
-              
-              
+              if (isEditing)
+                SwitchListTile(
+                  title: const Text('Pausar'),
+                  value: _cancel.value,
+                  onChanged: (v) => setState(() => _cancel.value = v),
+                ),
+
               const SizedBox(height: 60),
               ElevatedButton(
                 onPressed: _submit,
@@ -131,7 +136,7 @@ class _NotificationCreationScreenState
     final cancel = _cancel.value;
 
     final model = NotificationModel(
-      id: '',
+      id: widget.notification?.id ?? '',
       title: title,
       topic: topic.isEmpty ? 'ALL' : topic,
       description: description,
@@ -154,12 +159,12 @@ class _NotificationCreationScreenState
       print(model);
       await service.submitNotification(model);
       if (mounted) {
-        Navigator.of(context).pop(); 
-        context.pop(true); 
+        Navigator.of(context).pop();
+        context.pop(true);
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(); 
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
@@ -296,19 +301,29 @@ class _TopicDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: validTopic.contains(selectedTopic) ? selectedTopic : null,
+      // value: validTopic.contains(selectedTopic) ? selectedTopic : null,
+      value: selectedTopic,
       decoration: inputDecoration('Destino'),
       style: const TextStyle(
         fontSize: 14,
         color: Colors.black87,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w400,
       ),
-      items: validTopic
-          .map((topic) => DropdownMenuItem(
-                value: topic.name,
-                child: Text(topic.description),
-              ))
-          .toList(),
+      //   items: validTopic
+      //       .map((topic) => DropdownMenuItem(
+      //             value: topic.name,
+      //             child: Text(topic.description),
+      //           ))
+      //       .toList(),
+      //   onChanged: onChanged,
+      // );
+      items:
+          validTopic.map((topic) {
+            return DropdownMenuItem<String>(
+              value: topic.name, // ✅ Guardar el nombre del enum como String
+              child: Text(topic.description),
+            );
+          }).toList(),
       onChanged: onChanged,
     );
   }

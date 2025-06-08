@@ -15,7 +15,8 @@ class CourseListScreen extends ConsumerWidget {
     final asyncCourses = ref.watch(courseListProvider);
 
     return Scaffold(
-      appBar: AppBar(elevation: 0, centerTitle: true),
+      appBar: AppBar(elevation: 0, centerTitle: true, backgroundColor: const Color(0xFFFEECDA)),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: asyncCourses.when(

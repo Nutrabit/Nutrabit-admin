@@ -1,41 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/core/models/topic.dart';
 import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
 import 'package:nutrabit_admin/core/models/notification_model.dart';
-import 'package:nutrabit_admin/core/models/goal_model.dart';
 
+// Pantalla principal
 class NotificationsListScreen extends ConsumerWidget {
   const NotificationsListScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var notifications = ref.watch(notificationsStreamProvider);
+    // Trae las notificaciones
+    final notificationsAsync = ref.watch(notificationsControllerProvider);
+    // Trae el topic seleccionado por el usuario en el filtro
     final selectedTopic = ref.watch(selectedTopicProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notificaciones'),
         backgroundColor: const Color(0xFFFEECDA),
       ),
       backgroundColor: const Color(0xFFFEECDA),
-      body: notifications.when(
+      body: notificationsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text('Error: $err')),
         data: (notifications) {
+          // Filtra las notificaciones válidas (Objetivos + ALL)
           final validNotifications =
-              notifications.where((n) {
-                return n.topic == 'all' || parseGoalModel(n.topic) != null;
-              }).toList();
-
+              notifications.where((n) => parseTopic(n.topic) != null).toList();
+          // Si hay un topic seleccionado, filtra las notificaciones por ese topic
           final filteredNotifications =
-              selectedTopic != null
+              selectedTopic == null
                   ? validNotifications
-                      .where((n) => n.topic == selectedTopic)
-                      .toList()
-                  : validNotifications;
+                  : validNotifications.where((n) {
+                    final parsed = parseTopic(n.topic);
+                    return parsed == selectedTopic;
+                  }).toList();
 
           return Column(
             children: [
-              TopicFilterDropdown(),
+              // Filtro de objetivos/topics
+              const TopicFilterDropdown(),
+              // Lista de notificaciones
               Expanded(
                 child:
                     filteredNotifications.isEmpty
@@ -45,219 +50,91 @@ class NotificationsListScreen extends ConsumerWidget {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: _AddNotificationButton(),
+      // Botón para agregar una nueva notificación
+      floatingActionButton: const _AddNotificationButton(),
     );
   }
 }
 
-class _NotificationsListView extends ConsumerWidget {
+// Vista de la lista de notificaciones con lazy loading
+class _NotificationsListView extends ConsumerStatefulWidget {
   final List<NotificationModel> notifications;
-
   const _NotificationsListView(this.notifications);
+  @override
+  ConsumerState<_NotificationsListView> createState() =>
+      _NotificationsListViewState();
+}
+
+class _NotificationsListViewState
+    extends ConsumerState<_NotificationsListView> {
+  final _scrollController = ScrollController();
+  late final NotificationsController controller;
+  // Flag para mostrar el spinner
+  bool _isLoadingMore = false;
+  @override
+  void initState() {
+    super.initState();
+    // Obtiene el controlador de notificaciones
+    controller = ref.read(notificationsControllerProvider.notifier);
+    // Escucha el scroll para cargar más notificaciones
+    _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _onScroll() async {
+    if (_isLoadingMore || !controller.hasMore) return;
+
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      setState(() => _isLoadingMore = true);
+      await controller.loadMore();
+      setState(() => _isLoadingMore = false);
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: ListView.builder(
-        itemCount: notifications.length,
-        padding: const EdgeInsets.symmetric(vertical: 16), // opcional
+        controller: _scrollController,
+        itemCount: widget.notifications.length + (_isLoadingMore ? 1 : 0),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        // Muestra las notificaciones
         itemBuilder: (context, index) {
-          final notification = notifications[index];
-          return Center(
-            // 👈 Centra la card horizontalmente
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 800,
-              ), // 👈 Limita el ancho
-              // child: NotificationCard(
-              //   notification: notification,
-              //   onEdit: () {
-              //     print('Editar ${notification.title}');
-              //   },
-              //   onDelete: () async {
-              //     final confirm = await showDialog<bool>(
-              //       context: context,
-              //       builder:
-              //           (_) => AlertDialog(
-              //             title: const Text('¿Eliminar notificación?'),
-              //             content: const Text(
-              //               'Esta acción no se puede deshacer.',
-              //             ),
-              //             actions: [
-              //               TextButton(
-              //                 onPressed: () => Navigator.pop(context, false),
-              //                 child: const Text('Cancelar'),
-              //               ),
-              //               TextButton(
-              //                 onPressed: () => Navigator.pop(context, true),
-              //                 child: const Text('Eliminar'),
-              //               ),
-              //             ],
-              //           ),
-              //     );
-
-              //     if (confirm == true) {
-              //       await ref
-              //           .read(notificationServiceProvider)
-              //           .cancelNotification(notification.id);
-              //     }
-              //   },
-              // ),
-              child: NotificationRow(
-                notification: notification,
+          if (index < widget.notifications.length) {
+            final notification = widget.notifications[index];
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: NotificationRow(notification: notification),
               ),
-            ),
-          );
+            );
+          } else {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
         },
       ),
     );
   }
 }
 
-// class NotificationCard extends StatelessWidget {
-//   final NotificationModel notification;
-//   final VoidCallback onEdit;
-//   final VoidCallback onDelete;
-
-//   const NotificationCard({
-//     super.key,
-//     required this.notification,
-//     required this.onEdit,
-//     required this.onDelete,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final goal = parseGoalModel(notification.topic);
-//     final objetivoLabel = goal?.description ?? 'General';
-//     return Container(
-//       decoration: BoxDecoration(
-//         // color: Colors.transparent,
-//         color: const Color.fromARGB(26, 220, 96, 123),
-//         border: Border.all(color: const Color(0xFFDC607A), width: 1.5),
-//         borderRadius: BorderRadius.circular(12),
-//       ),
-//       padding: const EdgeInsets.all(16),
-//       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.all(16),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 // Título y menú
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                   children: [
-//                     Expanded(
-//                       child: Text(
-//                         notification.title,
-//                         style: const TextStyle(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.bold,
-//                           // color: Colors.black,
-//                           color: Color.fromARGB(255, 156, 43, 61),
-//                         ),
-//                       ),
-//                     ),
-//                     PopupMenuButton<String>(
-//                       onSelected: (value) {
-//                         if (value == 'edit') {
-//                           onEdit();
-//                         } else if (value == 'delete') {
-//                           onDelete();
-//                         }
-//                       },
-//                       itemBuilder:
-//                           (context) => [
-//                             const PopupMenuItem(
-//                               value: 'edit',
-//                               child: Text('Editar'),
-//                             ),
-//                             const PopupMenuItem(
-//                               value: 'delete',
-//                               child: Text('Eliminar'),
-//                             ),
-//                           ],
-//                     ),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 8),
-
-//                 // Descripción
-//                 Text(
-//                   notification.description,
-//                   style: const TextStyle(
-//                     fontSize: 16,
-//                     color: Colors.black,
-//                     // color: Color(0xFF9C2B3D),
-//                   ),
-//                 ),
-
-//                 const SizedBox(height: 12),
-
-//                 // Info adicional
-//                 Wrap(
-//                   spacing: 16,
-//                   runSpacing: 8,
-//                   children: [
-//                     _InfoChip(label: 'Objetivo', value: objetivoLabel),
-//                     _InfoChip(
-//                       label: 'Desde',
-//                       value: _formatDateTime(notification.scheduledTime),
-//                     ),
-//                     if (notification.endDate != null)
-//                       _InfoChip(
-//                         label: 'Hasta',
-//                         value: _formatDateTime(notification.endDate!),
-//                       ),
-//                     if (notification.repeatEvery != null)
-//                       _InfoChip(
-//                         label: 'Repetir cada',
-//                         value: '${notification.repeatEvery} días',
-//                       ),
-//                     _InfoChip(
-//                       label: 'Estado',
-//                       value: notification.cancel ? 'Cancelada' : 'Activa',
-//                       color:
-//                           notification.cancel
-//                               ? const Color.fromARGB(200, 244, 67, 54)
-//                               : const Color.fromARGB(200, 76, 175, 79),
-//                     ),
-//                   ],
-//                 ),
-
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   static String _formatDateTime(DateTime dt) {
-//     return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-//   }
-// }
-
+// Muestra una notificación individual con sus datos
 class NotificationRow extends StatelessWidget {
   final NotificationModel notification;
-
-  const NotificationRow({
-    super.key,
-    required this.notification,
-  });
-
+  const NotificationRow({super.key, required this.notification});
   @override
   Widget build(BuildContext context) {
-    final goal = parseGoalModel(notification.topic);
-    final objetivoLabel = goal?.description ?? 'General';
-
+    final topic = parseTopic(notification.topic);
+    final descriptionTopic = topic?.description;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
@@ -266,6 +143,7 @@ class NotificationRow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Titulo
               Expanded(
                 child: Text(
                   notification.title,
@@ -273,28 +151,29 @@ class NotificationRow extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFDC607A),
-                    // color: Color(0xFF9C2B3D),
                   ),
                 ),
               ),
-              _NotificationMenu(notification: notification,),
+              // Menu de opciones
+              _NotificationMenu(notification: notification),
             ],
           ),
           const SizedBox(height: 4),
+          // Descripción
           Text(
             notification.description,
-            style: const TextStyle(
-              fontSize: 15,
-              // color: Colors.black
-              color: Color(0xFFDC607A),
-            ),
+            style: const TextStyle(fontSize: 15, color: Color(0xFFDC607A)),
           ),
           const SizedBox(height: 8),
+          // Info de la notificación
           Wrap(
             spacing: 16,
             runSpacing: 8,
             children: [
-              _InfoChip(label: 'Objetivo', value: objetivoLabel),
+              _InfoChip(
+                label: 'Objetivo',
+                value: descriptionTopic ?? 'error/null',
+              ),
               _InfoChip(
                 label: 'Desde',
                 value: _formatDateTime(notification.scheduledTime),
@@ -325,66 +204,64 @@ class NotificationRow extends StatelessWidget {
     );
   }
 
+  // Formatea la fecha y hora de una notificación
   static String _formatDateTime(DateTime dt) {
     return '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 }
 
+// Chip de información para mostrar datos de la notificación
 class _InfoChip extends StatelessWidget {
   final String label;
   final String value;
   final Color? color;
-
   const _InfoChip({required this.label, required this.value, this.color});
-
   @override
   Widget build(BuildContext context) {
     return Chip(
       backgroundColor: color ?? Colors.white,
       label: Text(
         '$label: $value',
-        style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       side: BorderSide(color: color ?? Color(0xFFDC607A), width: 1),
     );
   }
 }
 
+// Filtro de objetivos/topics
 class TopicFilterDropdown extends ConsumerWidget {
   const TopicFilterDropdown({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTopic = ref.watch(selectedTopicProvider);
-
-    // Lista de opciones
-    final List<TopicOption> options = [
-      const TopicOption(topicKey: null, label: 'Todos los objetivos'),
-      const TopicOption(topicKey: 'all', label: 'General'),
-      ...GoalModel.values.map(
-        (goal) => TopicOption(topicKey: goal.name, label: goal.description),
-      ),
-    ];
-
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
-          child: DropdownButton<String?>(
-            isExpanded: true,
+          child: DropdownButton<Topic?>(
             value: selectedTopic,
-            hint: const Text('Filtrar por objetivo'),
             onChanged: (value) {
               ref.read(selectedTopicProvider.notifier).state = value;
+              ref.read(notificationsControllerProvider.notifier).reset();
             },
-            items:
-                options.map((opt) {
-                  return DropdownMenuItem<String?>(
-                    value: opt.topicKey,
-                    child: Text(opt.label),
-                  );
-                }).toList(),
+            items: [
+              const DropdownMenuItem<Topic?>(
+                value: null,
+                child: Text('Todos los objetivos'),
+              ),
+              ...Topic.values.map((topic) {
+                return DropdownMenuItem<Topic?>(
+                  value: topic,
+                  child: Text(topic.description),
+                );
+              }),
+            ],
           ),
         ),
       ),
@@ -392,9 +269,9 @@ class TopicFilterDropdown extends ConsumerWidget {
   }
 }
 
+// Botón para crear notificaciones
 class _AddNotificationButton extends StatelessWidget {
   const _AddNotificationButton();
-
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
@@ -409,81 +286,105 @@ class _AddNotificationButton extends StatelessWidget {
   }
 }
 
-GoalModel? parseGoalModel(String topic) {
+// Devuelve el Topic a partir de su nombre, o null si no existe
+Topic? parseTopic(String topic) {
   try {
-    return GoalModel.values.firstWhere((e) => e.name == topic);
+    final cleaned = topic.trim().toUpperCase();
+    return Topic.values.firstWhere((e) => e.name == cleaned);
   } catch (_) {
+    debugPrint('Error: "$topic" no coincide con ningún objetivo');
     return null;
   }
 }
 
+// Clase que representa las opciones del filtro de topics
 class TopicOption {
-  final String? topicKey; // Puede ser 'PERDER_GRASA', 'all', etc.
+  final Topic? topicKey;
   final String label;
 
   const TopicOption({required this.topicKey, required this.label});
 }
 
+// Menú de opciones en cada notificación
 class _NotificationMenu extends ConsumerWidget {
   final NotificationModel notification;
-
   const _NotificationMenu({required this.notification});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final service = ref.read(notificationServiceProvider);
 
     return PopupMenuButton<String>(
       onSelected: (value) async {
-        if (value == 'edit') {
-          context.push('/notificaciones/editar', extra: notification);
-        } else if (value == 'pause') {
-          final updated = notification.copyWith(cancel: !notification.cancel);
-          await service.updateNotification(updated);
-
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(updated.cancel
-                ? 'Notificación pausada'
-                : 'Notificación reactivada'),
-            duration: const Duration(seconds: 2),
-          ));
-        } else if (value == 'delete') {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('¿Eliminar notificación?'),
-              content: const Text('Esta acción no se puede deshacer.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancelar'),
+        switch (value) {
+          //Editar
+          case 'edit':
+            final result = await context.push(
+              '/notificaciones/editar',
+              extra: notification,
+            );
+            if (result == true && context.mounted) {
+              ref.read(notificationsControllerProvider.notifier).reset();
+            }
+            break;
+          // Pausar
+          case 'pause':
+            final updated = notification.copyWith(cancel: !notification.cancel);
+            await service.updateNotification(updated);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  updated.cancel
+                      ? 'Notificación pausada'
+                      : 'Notificación reactivada',
                 ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Eliminar'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            break;
+          // Eliminar
+          case 'delete':
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder:
+                  // PopUp para eliminar
+                  (_) => AlertDialog(
+                    title: const Text('¿Eliminar notificación?'),
+                    content: const Text('Esta acción no se puede deshacer.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Eliminar'),
+                      ),
+                    ],
+                  ),
+            );
+            if (confirm == true) {
+              await service.deleteNotification(notification.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Notificación eliminada'),
+                  duration: Duration(seconds: 2),
                 ),
-              ],
-            ),
-          );
-          if (confirm == true) {
-            await service.deleteNotification(notification.id);
-
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Notificación eliminada'),
-              duration: Duration(seconds: 2),
-            ));
-          }
+              );
+            }
+            break;
+          default:
+            debugPrint('Error: $value');
         }
       },
-      itemBuilder: (context) => [
-        const PopupMenuItem(value: 'edit', child: Text('Editar')),
-        PopupMenuItem(
-          value: 'pause',
-          child: Text(notification.cancel ? 'Activar' : 'Pausar'),
-        ),
-        const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
-      ],
+      itemBuilder:
+          (context) => [
+            const PopupMenuItem(value: 'edit', child: Text('Editar')),
+            PopupMenuItem(
+              value: 'pause',
+              child: Text(notification.cancel ? 'Activar' : 'Pausar'),
+            ),
+            const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+          ],
     );
   }
 }
-
