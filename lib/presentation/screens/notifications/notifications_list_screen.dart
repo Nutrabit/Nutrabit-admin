@@ -328,8 +328,15 @@ class _NotificationMenu extends ConsumerWidget {
             break;
           // Pausar
           case 'pause':
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
+            );
             final updated = notification.copyWith(cancel: !notification.cancel);
             await service.updateNotification(updated);
+             Navigator.of(context).pop();
+            ref.read(notificationsControllerProvider.notifier).reset();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
