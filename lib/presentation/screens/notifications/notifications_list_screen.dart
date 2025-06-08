@@ -335,7 +335,7 @@ class _NotificationMenu extends ConsumerWidget {
             );
             final updated = notification.copyWith(cancel: !notification.cancel);
             await service.updateNotification(updated);
-             Navigator.of(context).pop();
+            Navigator.of(context).pop();
             ref.read(notificationsControllerProvider.notifier).reset();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -370,7 +370,15 @@ class _NotificationMenu extends ConsumerWidget {
                   ),
             );
             if (confirm == true) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder:
+                    (_) => const Center(child: CircularProgressIndicator()),
+              );
               await service.deleteNotification(notification.id);
+              Navigator.of(context).pop();
+              ref.read(notificationsControllerProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Notificación eliminada'),
