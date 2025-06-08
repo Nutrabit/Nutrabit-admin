@@ -73,3 +73,26 @@ exports.taskRunner = onSchedule("* * * * *", async (_context) => {
   await Promise.all(promises);
 });
 
+const axios = require("axios");
+
+exports.faviconProxy = onRequest(async (req, res) => {
+  const domain = req.query.domain;
+  if (!domain) {
+    return res.status(400).send("Missing domain parameter");
+  }
+
+  try {
+    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+    const response = await axios.get(faviconUrl, {
+      responseType: "arraybuffer",
+    });
+
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Content-Type", response.headers["content-type"] || "image/png");
+    res.send(response.data);
+  } catch (error) {
+    console.error("Error fetching favicon:", error);
+    res.status(500).send("Error fetching favicon");
+  }
+});

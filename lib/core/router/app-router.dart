@@ -8,8 +8,7 @@ import 'package:nutrabit_admin/presentation/screens/calendar/patient_calendarDay
 import 'package:nutrabit_admin/presentation/screens/courses/course_creation.dart';
 import 'package:nutrabit_admin/presentation/screens/courses/course_list_screen.dart';
 import 'package:nutrabit_admin/presentation/screens/home.dart';
-import 'package:nutrabit_admin/presentation/screens/interest_list/altaListaInteres.dart';
-import 'package:nutrabit_admin/presentation/screens/interest_list/listaInteres.dart';
+import 'package:nutrabit_admin/presentation/screens/interest_list/interest_list.dart';
 import 'package:nutrabit_admin/presentation/screens/login.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notification_creation.dart';
 import 'package:nutrabit_admin/presentation/screens/notifications/notifications_list_screen.dart';
@@ -160,14 +159,8 @@ final appRouter = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        path: 'listaInteres',
-        builder: (context, state) => ListaInteres(),
-        routes: [
-          GoRoute(
-            path: 'alta',
-            builder: (context, state) => AltaListaInteres(),
-          ),
-        ],
+        path: '/listaInteres',
+        builder: (context, state) => InterestList(),
       ),
       GoRoute(
         path: '/recuperar-clave',

@@ -181,7 +181,7 @@ class MobileHomePage extends StatelessWidget {
                       child: HomeButton(
                         imagePath: 'assets/img/recomendationImage.png',
                         text: 'Recomendaciones',
-                        onPressed: () => context.push('/calendario'),
+                        onPressed: () => context.push('/listaInteres'),
                         fontSize: screenWidth * 0.035,
                         width: screenWidth * 0.35,
                         imageHeight: screenHeight * 0.11,
@@ -315,7 +315,7 @@ class WebHomePage extends StatelessWidget {
                           child: HomeButton(
                             imagePath: 'assets/img/recomendationImage.png',
                             text: 'Recomendaciones',
-                            onPressed: () => context.push('/calendario'),
+                            onPressed: () => context.push('/listaInteres'),
                             fontSize: 20,
                             width: 250,
                             imageHeight: 120,
