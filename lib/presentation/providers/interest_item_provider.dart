@@ -86,6 +86,7 @@ class InterestItemsNotifier extends AsyncNotifier<List<InterestItem>> {
     final now = DateTime.now();
 
     await docRef.set({
+      'id': docRef.id,
       'url': url.trim(),
       'title': title.trim(),
       'createdAt': now,
