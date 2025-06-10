@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
+import 'package:nutrabit_admin/core/models/notification_model.dart';
 import '../../providers/file_provider.dart';
 import '../../../core/models/file_type.dart';
 import '../../../core/services/file_service.dart';
@@ -55,6 +58,10 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
             : 'Error enviando archivos'),
       ),
     );
+
+    if (success) {
+      await _createNotification(Timestamp.now().toDate());
+    }
   }
 
   @override
@@ -235,4 +242,30 @@ class LoadingOverlay extends StatelessWidget {
         color: const Color.fromARGB(51, 0, 0, 0),
         child: const Center(child: CircularProgressIndicator()),
       );
+}
+
+
+
+Future<void> _createNotification(DateTime apptTime) async {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
+  final model = NotificationModel(
+    id: '',
+    title: '¡Flor te mando algo!',
+    topic: _auth.currentUser!.uid,
+    description: 'Revisa tus archivos.',
+    scheduledTime: apptTime,
+    endDate: apptTime,
+    repeatEvery: 1,
+    urlIcon: '',
+    cancel: false,
+  );
+
+  final notificationService = NotificationService();
+
+  try {
+    await notificationService.createNotification(model);
+  } catch (e) {
+    print(e);
+  };
 }
