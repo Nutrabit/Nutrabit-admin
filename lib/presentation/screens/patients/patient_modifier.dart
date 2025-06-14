@@ -174,9 +174,10 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
             centerTitle: true,
             title: const Text('Modificar paciente'),
             leading: const BackButton(),
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFFFEECDA),
             elevation: 0,
           ),
+          backgroundColor: const Color(0xFFFEECDA),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
