@@ -40,7 +40,7 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
     super.dispose();
   }
 
-  Future<void> _updatePatient() async {
+Future<void> _updatePatient() async {
   try {
     final name = _nameController.text.trim();
     final lastName = _lastNameController.text.trim();
@@ -81,7 +81,14 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
       activity: _selectedActivity ?? '',
     );
 
-    _showSuccessPopup();
+    await showGenericPopupBack(
+      context: context,
+      message: '¡Perfil modificado exitosamente!',
+      id: widget.id,
+      onNavigate: (context, id) {
+        Navigator.pop(context); 
+      },
+    );
   } catch (e) {
     print('Error al actualizar paciente: $e');
     ScaffoldMessenger.of(context).showSnackBar(
@@ -90,55 +97,6 @@ class _PatientModifierState extends ConsumerState<PatientModifier> {
   }
 }
 
-  void _showSuccessPopup() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          content: SizedBox(
-            width: 250,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '¡Perfil modificado exitosamente!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 10),
-                const Divider(),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB5D6B2),
-                    side: const BorderSide(color: Colors.black),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  child: const Text(
-                    'VOLVER',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF706B66),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
