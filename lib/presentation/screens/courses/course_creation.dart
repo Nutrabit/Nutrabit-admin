@@ -203,7 +203,8 @@ class _CourseCreationScreenState extends ConsumerState<CourseCreationScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.course != null;
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(backgroundColor: const Color(0xFFFEECDA)),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(

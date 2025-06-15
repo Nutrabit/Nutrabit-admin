@@ -2,7 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_provider.dart';
+import 'package:nutrabit_admin/presentation/providers/change_password_provider.dart';
+// import '../../providers/auth_provider.dart';
 class ForgotPassword extends ConsumerStatefulWidget {
   const ForgotPassword({super.key});
 
@@ -24,7 +25,7 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
       ).showSnackBar(const SnackBar(content: Text('Ingrese un email válido.')));
     }else{
       // Se llama al método del provider
-      ref.read(authProvider.notifier).sendPasswordResetEmail(email);
+      ref.read(changePasswordProvider.notifier).sendPasswordResetEmail(email);
     }
     
   }
@@ -52,7 +53,7 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Revisa tu bandeja de entrada para restablecer tu contraseña.',
+                  'Revisá tu bandeja de entrada para restablecer tu contraseña.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
@@ -93,9 +94,9 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(changePasswordProvider);
 
-    ref.listen<AsyncValue<void>>(authProvider, (prev, next) {
+    ref.listen<AsyncValue<void>>(changePasswordProvider, (prev, next) {
       next.when(
         loading: () {},
         data: (_) {
@@ -115,7 +116,8 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recuperar contraseña'),leading: const BackButton()),
+      appBar: AppBar(title: const Text('Recuperar contraseña'),leading: const BackButton(),backgroundColor: const Color(0xFFFEECDA),),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

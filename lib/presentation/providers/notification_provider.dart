@@ -66,14 +66,21 @@ final selectedTopicProvider = StateProvider<Topic?>((ref) => null);
 final notificationsControllerProvider = StateNotifierProvider<
   NotificationsController,
   AsyncValue<List<NotificationModel>>
->((ref) => NotificationsController());
+>((ref) {
+  return NotificationsController(ref);
+});
 
 // Maneja la lógica de carga y estado de las notificaciones.
 class NotificationsController
     extends StateNotifier<AsyncValue<List<NotificationModel>>> {
-  NotificationsController() : super(const AsyncLoading()) {
+  NotificationsController(this.ref) : super(const AsyncLoading()) {
+    // Cuando se cambia el filtro de topic, resetea las notificaciones
+    ref.listen<Topic?>(selectedTopicProvider, (_, __) {
+      reset();
+    });
     loadMore();
   }
+  final Ref ref;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   // Cantidad de notificaciones a cargar por tanda
   final int _limit = 10;
@@ -94,27 +101,34 @@ class NotificationsController
     if (_isFetching || !_hasMore) return;
     _isFetching = true;
     try {
-      Query query = _db
-          .collection('notifications')
-          .orderBy('scheduledTime', descending: false)
-          .limit(_limit);
+      // Construye la query según el topic seleccionado
+      Query query = _db.collection('notifications');
+
+      final filter = ref.read(selectedTopicProvider);
+      if (filter != null) {
+        // Si hay filtro, trae SOLO ese topic
+        query = query.where('topic', isEqualTo: filter.name);
+      } else {
+        // Si no, traigo todos los válidos 
+        final validTopicNames = Topic.values.map((t) => t.name).toList();
+        query = query.where('topic', whereIn: validTopicNames);
+      }
+
+      query = query.orderBy('scheduledTime', descending: false).limit(_limit);
 
       final snapshot =
           _lastDoc != null
               ? await query.startAfterDocument(_lastDoc!).get()
               : await query.get();
 
-      final newItems =
-          snapshot.docs.map((doc) => NotificationModel.fromDoc(doc)).toList();
-
       if (snapshot.docs.isNotEmpty) {
         _lastDoc = snapshot.docs.last;
       }
+      if (snapshot.docs.length < _limit) _hasMore = false;
 
-      if (newItems.length < _limit) {
-        _hasMore = false;
-      }
-      _notifications.addAll(newItems);
+      _notifications.addAll(
+        snapshot.docs.map((d) => NotificationModel.fromDoc(d)),
+      );
       state = AsyncData(List.from(_notifications));
     } catch (e, st) {
       state = AsyncError(e, st);

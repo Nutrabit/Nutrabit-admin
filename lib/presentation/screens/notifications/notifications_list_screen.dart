@@ -24,18 +24,16 @@ class NotificationsListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (notifications) {
-          // Filtra las notificaciones válidas (Objetivos + ALL)
-          final validNotifications =
-              notifications.where((n) => parseTopic(n.topic) != null).toList();
+          final allNotifications = notifications;
           // Si hay un topic seleccionado, filtra las notificaciones por ese topic
           final filteredNotifications =
               selectedTopic == null
-                  ? validNotifications
-                  : validNotifications.where((n) {
-                    final parsed = parseTopic(n.topic);
-                    return parsed == selectedTopic;
+                  // si no hay selección, muestro todas
+                  ? allNotifications
+                  // si hay selección, solo las que coincidan con ese Topic
+                  : allNotifications.where((n) {
+                    return parseTopic(n.topic) == selectedTopic;
                   }).toList();
-
           return Column(
             children: [
               // Filtro de objetivos/topics
@@ -270,13 +268,18 @@ class TopicFilterDropdown extends ConsumerWidget {
 }
 
 // Botón para crear notificaciones
-class _AddNotificationButton extends StatelessWidget {
+class _AddNotificationButton extends ConsumerWidget {
   const _AddNotificationButton();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return FloatingActionButton(
-      onPressed: () {
-        context.push('/notificaciones/crear');
+      onPressed: () async {
+        // Espera la respuesta de la creación de la notificación
+        final created = await context.push<bool>('/notificaciones/crear');
+        // Si viene true, recarga las notificaciones
+        if (created == true) {
+          ref.read(notificationsControllerProvider.notifier).reset();
+        }
       },
       backgroundColor: const Color(0xFFD7F9DE),
       foregroundColor: Colors.black,

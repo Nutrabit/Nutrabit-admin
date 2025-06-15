@@ -55,8 +55,9 @@ final appRouter = Provider<GoRouter>((ref) {
       if (isLoggedIn == null) return null;
 
       final isLoggingIn = state.uri.toString() == '/login';
+      final isRecoveryPass = state.uri.toString() == '/recuperar-clave';
 
-      if (!isLoggedIn && !isLoggingIn) return '/login';
+      if (!isLoggedIn && !isLoggingIn && !isRecoveryPass) return '/login';
       if (isLoggedIn && isLoggingIn) return '/';
       return null;
     },

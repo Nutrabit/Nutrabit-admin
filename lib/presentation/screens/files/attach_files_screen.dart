@@ -67,7 +67,9 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
+        backgroundColor: const Color(0xFFFEECDA),
       ),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Stack(
         children: [
           Padding(
