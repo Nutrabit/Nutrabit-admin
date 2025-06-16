@@ -77,21 +77,37 @@ class PatientDetail extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 24),
-                _InfoCard(
-                  name: '$name $lastname',
-                  email: email,
-                  age: age,
-                  weight: weight,
-                  height: height,
-                  profilePic: profilePic,
-                  dni: dni,
-                  onEdit:
-                      () => Navigator.push(
+                Builder(
+                  builder: (context) {
+                    final screenWidth = MediaQuery.of(context).size.width;
+
+                    final isDesktop = screenWidth >= 600;
+
+                    final infoCard = _InfoCard(
+                      name: '$name $lastname',
+                      email: email,
+                      age: age,
+                      weight: weight,
+                      height: height,
+                      profilePic: profilePic,
+                      dni: dni,
+                      onEdit: () => Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => PatientModifier(id: id),
-                        ),
+                        MaterialPageRoute(builder: (_) => PatientModifier(id: id)),
                       ),
+                    );
+
+                    if (isDesktop) {
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 450),
+                          child: infoCard,
+                        ),
+                      );
+                    } else {
+                      return infoCard;
+                    }
+                  },
                 ),
                 const SizedBox(height: 24),
                 PatientActions(id: id),
@@ -165,7 +181,7 @@ class _InfoCard extends StatelessWidget {
                         )
                         : null,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 5),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
