@@ -134,7 +134,19 @@ class _LoginState extends ConsumerState<Login> {
                             });
                             final email = emailController.text;
                             final password = passwordController.text;
-                            // ignore: unused_local_variable
+                            if (email.isEmpty || password.isEmpty){
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                         'Por favor complete todos los campos'
+                                        ),
+                                      ),
+                                    );
+                                    setState(() {
+                              isLoading = false;
+                            });
+                            } else{
+                              // ignore: unused_local_variable
                             final cred = ref
                                 .read(authProvider.notifier)
                                 .login(email, password)
@@ -159,6 +171,7 @@ class _LoginState extends ConsumerState<Login> {
                                     );
                                   }
                                 });
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color.fromRGBO(220, 96, 122, 1),

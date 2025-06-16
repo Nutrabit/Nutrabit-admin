@@ -38,7 +38,8 @@ class PatientDetail extends ConsumerWidget {
         final height = (heightValue != null && heightValue != 0) ? heightValue.toString() : '-';
 
         return Scaffold(
-          appBar: AppBar(leading: const BackButton(), elevation: 0),
+          appBar: AppBar(leading: const BackButton(), elevation: 0, backgroundColor: const Color(0xFFFEECDA),),
+          backgroundColor: const Color(0xFFFEECDA),
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
