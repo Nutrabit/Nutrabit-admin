@@ -45,7 +45,7 @@ class _InterestListState extends ConsumerState<InterestList> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFFFF0F6),
+      backgroundColor: const Color(0xFFFEECDA),
       body: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),

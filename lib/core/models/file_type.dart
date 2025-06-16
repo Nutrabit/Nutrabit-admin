@@ -1,6 +1,6 @@
 enum FileType {
   SHOPPING_LIST,
-  EXERCISE_PLAN,
+  EXTRA_INFORMATION,
   MEAL_PLAN,
   RECOMMENDATIONS,
   MEASUREMENTS
@@ -11,8 +11,8 @@ extension FileTypeExtension on FileType {
     switch (this) {
       case FileType.SHOPPING_LIST:
         return "Lista de Compras";
-      case FileType.EXERCISE_PLAN:
-        return "Plan de Ejercicio";
+      case FileType.EXTRA_INFORMATION:
+        return "Información Extra";
       case FileType.MEAL_PLAN:
         return "Plan de Alimentación";
       case FileType.RECOMMENDATIONS:
