@@ -46,8 +46,6 @@ const textStyle = const TextStyle(fontFamily: 'Inter', fontSize: 18);
 
 
 
-
-
 class PopupStyle {
   final BoxDecoration decoration;
   final TextStyle messageTextStyle;
