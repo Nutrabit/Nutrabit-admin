@@ -91,10 +91,13 @@ class PatientDetail extends ConsumerWidget {
                       height: height,
                       profilePic: profilePic,
                       dni: dni,
-                      onEdit: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => PatientModifier(id: id)),
-                      ),
+                      onEdit:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PatientModifier(id: id),
+                            ),
+                          ),
                     );
 
                     if (isDesktop) {
@@ -152,6 +155,8 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayName = name.split(' ').map((e) => e.capitalize()).join(' ');
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -181,7 +186,7 @@ class _InfoCard extends StatelessWidget {
                         )
                         : null,
               ),
-              const SizedBox(width: 5),
+              SizedBox(width: screenWidth * 0.04),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,8 +222,8 @@ class _InfoCard extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 5,
-          right: 20,
+          top: screenHeight * 0.005,
+          right: screenWidth * 0.008,
           child: Material(
             color: Colors.transparent,
             child: IconButton(
@@ -304,123 +309,126 @@ class AccountStatusButton extends StatelessWidget {
     );
   }
 
- void _showConfirmDialog(BuildContext context) {
-  final style = defaultAlertDialogStyle;
+  void _showConfirmDialog(BuildContext context) {
+    final style = defaultAlertDialogStyle;
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        backgroundColor: style.backgroundColor,
-        elevation: style.elevation,
-        shape: style.shape,
-        titleTextStyle: style.titleTextStyle,
-        contentTextStyle: style.contentTextStyle,
-        contentPadding: style.contentPadding ?? const EdgeInsets.fromLTRB(24, 20, 24, 10),
-        content: SizedBox(
-          width: 250,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '¿Estás seguro de que deseas ${isActive ? 'deshabilitar' : 'habilitar'} a $name?',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              const Divider(),
-              const SizedBox(height: 1),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    style: style.buttonStyle?.copyWith(
-                      backgroundColor: MaterialStateProperty.all(const Color(0xFFFEECDa)),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: Colors.black),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: style.backgroundColor,
+          elevation: style.elevation,
+          shape: style.shape,
+          titleTextStyle: style.titleTextStyle,
+          contentTextStyle: style.contentTextStyle,
+          contentPadding:
+              style.contentPadding ?? const EdgeInsets.fromLTRB(24, 20, 24, 10),
+          content: SizedBox(
+            width: 250,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '¿Estás seguro de que deseas ${isActive ? 'deshabilitar' : 'habilitar'} a $name?',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      style: style.buttonStyle?.copyWith(
+                        backgroundColor: MaterialStateProperty.all(
+                          const Color(0xFFFEECDa),
+                        ),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: const BorderSide(color: Colors.black),
+                          ),
+                        ),
+                        minimumSize: MaterialStateProperty.all(
+                          const Size(110, 48),
+                        ), // Tamaño más cómodo
+                      ),
+                      child: Text(
+                        'CANCELAR',
+                        style: style.buttonTextStyle?.copyWith(
+                          color: const Color(0xFF706B66),
                         ),
                       ),
-                      minimumSize: MaterialStateProperty.all(const Size(110, 48)), // Tamaño más cómodo
                     ),
-                    child: Text(
-                      'CANCELAR',
-                      style: style.buttonTextStyle?.copyWith(color: const Color(0xFF706B66)),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.of(dialogContext).pop();
+                        await ref
+                            .read(userProvider.notifier)
+                            .updateUserState(id, !isActive);
+                        _showResultDialog(context);
+                        ref.refresh(paginatedUsersProvider);
+                      },
+                      style: style.buttonStyle?.copyWith(
+                        minimumSize: MaterialStateProperty.all(
+                          const Size(110, 48),
+                        ), // Igual que cancelar
+                      ),
+                      child: Text('CONFIRMAR', style: style.buttonTextStyle),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () async {
-                      Navigator.of(dialogContext).pop();
-                      await ref.read(userProvider.notifier).updateUserState(id, !isActive);
-                      _showResultDialog(context);
-                      ref.refresh(paginatedUsersProvider);
-                    },
-                    style: style.buttonStyle?.copyWith(
-                      minimumSize: MaterialStateProperty.all(const Size(110, 48)), // Igual que cancelar
-                    ),
-                    child: Text(
-                      'CONFIRMAR',
-                      style: style.buttonTextStyle,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
-void _showResultDialog(BuildContext context) {
-  final style = defaultAlertDialogStyle;
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: style.backgroundColor,
-        elevation: style.elevation,
-        shape: style.shape,
-        titleTextStyle: style.titleTextStyle,
-        contentTextStyle: style.contentTextStyle,
-        contentPadding: style.contentPadding ?? const EdgeInsets.all(20),
-        content: SizedBox(
-          width: 250,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                isActive
-                    ? '¡Cuenta deshabilitada correctamente!'
-                    : '¡Cuenta habilitada correctamente!',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              const Divider(),
-              const SizedBox(height: 6),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: style.buttonStyle,
-                child: Text(
-                  'VOLVER',
-                  style: style.buttonTextStyle,
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
+  void _showResultDialog(BuildContext context) {
+    final style = defaultAlertDialogStyle;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: style.backgroundColor,
+          elevation: style.elevation,
+          shape: style.shape,
+          titleTextStyle: style.titleTextStyle,
+          contentTextStyle: style.contentTextStyle,
+          contentPadding: style.contentPadding ?? const EdgeInsets.all(20),
+          content: SizedBox(
+            width: 250,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isActive
+                      ? '¡Cuenta deshabilitada correctamente!'
+                      : '¡Cuenta habilitada correctamente!',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 6),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: style.buttonStyle,
+                  child: Text('VOLVER', style: style.buttonTextStyle),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class PatientActionButton extends StatelessWidget {

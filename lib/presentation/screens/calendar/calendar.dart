@@ -97,6 +97,7 @@ class _CalendarScreenState extends ConsumerState<Calendar> {
                   ),
                 ],
               ),
+              backgroundColor: const Color(0xFFFEECDA),
               drawer: AppDrawer(),
               body: Column(
                 children: [
@@ -318,7 +319,7 @@ class cardPatient extends StatelessWidget {
             padding: const EdgeInsets.only(top: 10),
             height: 60,
             decoration: BoxDecoration(
-              color: Color.fromRGBO(236, 218, 122, 0.2),
+              color: const Color.fromARGB(251, 252, 250, 238),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(30),
                 bottomLeft: Radius.circular(30),

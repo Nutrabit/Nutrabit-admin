@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
 import 'package:nutrabit_admin/core/models/topic.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class NotificationCreation extends ConsumerStatefulWidget {
   final NotificationModel? notification;
@@ -57,10 +58,22 @@ class _NotificationCreationScreenState
     final isEditing = widget.notification != null;
 
     return Scaffold(
+      drawer: AppDrawer(),
       appBar: AppBar(
+        leading: BackButton(),
         centerTitle: true,
         title: Text(isEditing ? 'Editar notificación' : 'Nueva notificación'),
         backgroundColor: const Color(0xFFFEECDA),
+        elevation: 0,
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFFEECDA),
       body: Padding(

@@ -34,7 +34,16 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.account_circle),
+            leading: const Icon(Icons.home),
+            title: const Text('Inicio'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.push('/');
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.password),
             title: const Text('Cambiar contraseña'),
             onTap: () {
               Navigator.of(context).pop();
@@ -46,10 +55,8 @@ class AppDrawer extends StatelessWidget {
 
           const Spacer(),
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-            child: Row(children: const [Logout()]),
-          ),
+          Row(children: const [Logout()]),
+          
 
           const SizedBox(height: 16),
         ],

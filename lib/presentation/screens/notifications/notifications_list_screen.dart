@@ -16,6 +16,7 @@ class NotificationsListScreen extends ConsumerWidget {
     // Trae el topic seleccionado por el usuario en el filtro
     final selectedTopic = ref.watch(selectedTopicProvider);
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         leading: BackButton(),
         title: const Text('Notificaciones'),
@@ -23,6 +24,15 @@ class NotificationsListScreen extends ConsumerWidget {
         scrolledUnderElevation: 0,  
         elevation: 0, 
         centerTitle: true, 
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFFEECDA),
       body: notificationsAsync.when(
