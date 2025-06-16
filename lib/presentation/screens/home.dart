@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import 'package:nutrabit_admin/widgets/homeButton.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -18,7 +19,7 @@ class _HomeState extends ConsumerState<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
+
     if (!_assetsLoaded) {
       _precacheAssets();
     }
@@ -33,18 +34,9 @@ class _HomeState extends ConsumerState<HomePage> {
         ),
         null,
       ),
-      precacheImage(
-        const AssetImage('assets/img/nutriImage.png'),
-        context, 
-      ),
-      precacheImage(
-        const AssetImage('assets/img/patientsImage.png'),
-        context,
-      ),
-      precacheImage(
-        const AssetImage('assets/img/publicityImage.png'),
-        context,
-      ),
+      precacheImage(const AssetImage('assets/img/nutriImage.png'), context),
+      precacheImage(const AssetImage('assets/img/patientsImage.png'), context),
+      precacheImage(const AssetImage('assets/img/publicityImage.png'), context),
       precacheImage(
         const AssetImage('assets/img/notificationImage.png'),
         context,
@@ -60,11 +52,8 @@ class _HomeState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     if (!_assetsLoaded) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
 
     if (kIsWeb) {
       return WebHomePage();
@@ -73,6 +62,7 @@ class _HomeState extends ConsumerState<HomePage> {
     }
   }
 }
+
 class MobileHomePage extends StatelessWidget {
   const MobileHomePage({super.key});
 
@@ -82,6 +72,24 @@ class MobileHomePage extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+          ),
+        ],
+      ),
+      
       backgroundColor: const Color(0xFFFEECDA),
       body: SingleChildScrollView(
         child: SizedBox(
@@ -191,19 +199,6 @@ class MobileHomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: TextButton(
-                  onPressed: () => context.push('/cambiar-clave'),
-                  child: Text(
-                    'Cambiar contraseña',
-                    style: TextStyle(
-                      color: Color.fromRGBO(130, 130, 130, 1),
-                      fontSize: screenHeight * 0.015,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -220,6 +215,22 @@ class WebHomePage extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
+      ),
+      endDrawer: AppDrawer(),
       backgroundColor: const Color(0xFFFEECDA),
       body: Center(
         child: ConstrainedBox(
@@ -326,21 +337,6 @@ class WebHomePage extends StatelessWidget {
                     ),
 
                     const Spacer(),
-
-                    // Footer con botón
-                    Align(
-                      alignment: Alignment.center,
-                      child: TextButton(
-                        onPressed: () => context.push('/cambiar-clave'),
-                        child: const Text(
-                          'Cambiar contraseña',
-                          style: TextStyle(
-                            color: Color.fromRGBO(130, 130, 130, 1),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 );
               },

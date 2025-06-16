@@ -58,6 +58,7 @@ class _NotificationCreationScreenState
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(isEditing ? 'Editar notificación' : 'Nueva notificación'),
         backgroundColor: const Color(0xFFFEECDA),
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'package:nutrabit_admin/widgets/logout.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class PatientRegistration extends StatelessWidget {
   const PatientRegistration({super.key});
@@ -13,11 +14,18 @@ class PatientRegistration extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
-        title: const Text('Nuevo paciente'),
         leading: const BackButton(),
-        actions: [Logout()],
+        actions: [Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),],
       ),
+      drawer: const AppDrawer(),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: PatientRegistrationForm(),

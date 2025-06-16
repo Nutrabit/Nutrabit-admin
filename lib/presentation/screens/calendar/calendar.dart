@@ -4,6 +4,7 @@ import 'package:nutrabit_admin/core/models/event_type.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'package:nutrabit_admin/presentation/providers/user_provider.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/core/models/calendar_event.dart';
@@ -82,8 +83,21 @@ class _CalendarScreenState extends ConsumerState<Calendar> {
 
             return Scaffold(
               appBar: AppBar(
-                title: Text('${name.capitalize()} ${lastname.capitalize()}'),
+                leading: BackButton(),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+                actions: [
+                  Builder(
+                    builder:
+                        (context) => IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
+                  ),
+                ],
               ),
+              drawer: AppDrawer(),
               body: Column(
                 children: [
                   //  Pasa name, lastname y profilePic al card
@@ -200,13 +214,28 @@ class _CalendarScreenState extends ConsumerState<Calendar> {
                                     ),
                                   ),
                                   child: ListTile(
+                                    onTap: () {
+                                      context.pushNamed(
+                                        'calendarDetail',
+                                        pathParameters: {
+                                          'id': widget.patientId,
+                                        },
+                                        extra: {
+                                          'date': _selectedDay,
+                                          'patientId': widget.patientId,
+                                        },
+                                      );
+                                    },
                                     leading: _getEventTypeIcon(
                                       e.type,
                                       size: screenHeight * 0.02,
                                     ),
                                     title: Text(e.title),
                                     subtitle: Text(e.description),
-                                    textColor: Color.fromARGB(255, 0, 0, 0),
+                                    trailing: const Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                    ),
+                                    textColor: const Color(0xFF000000),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),

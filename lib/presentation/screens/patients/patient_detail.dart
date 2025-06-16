@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
 
@@ -16,17 +17,26 @@ class PatientDetail extends ConsumerWidget {
     final userAsync = ref.watch(userStreamProvider(id));
 
     return userAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text('Error: $e'))),
+      loading:
+          () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error:
+          (e, _) => Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text('Error: $e')),
+          ),
       data: (snapshot) {
         if (!snapshot.exists) {
-          return Scaffold(appBar: AppBar(), body: const Center(child: Text('Paciente no encontrado')));
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Paciente no encontrado')),
+          );
         }
 
         final data = snapshot.data() as Map<String, dynamic>;
         final name = data['name'] ?? 'Sin nombre';
         final lastname = data['lastname'] ?? '';
-        final dni = data['dni'] ??'';
+        final dni = data['dni'] ?? '';
         final email = data['email'] ?? '-';
         final weightValue = data['weight'];
         final heightValue = data['height'];
@@ -34,11 +44,32 @@ class PatientDetail extends ConsumerWidget {
         final profilePic = data['profilePic'];
         final birthday = _parseDate(data['birthday']);
         final age = birthday != null ? calculateAge(birthday).toString() : '-';
-        final weight = (weightValue != null && weightValue != 0) ? weightValue.toString() : '-';
-        final height = (heightValue != null && heightValue != 0) ? heightValue.toString() : '-';
+        final weight =
+            (weightValue != null && weightValue != 0)
+                ? weightValue.toString()
+                : '-';
+        final height =
+            (heightValue != null && heightValue != 0)
+                ? heightValue.toString()
+                : '-';
 
         return Scaffold(
-          appBar: AppBar(leading: const BackButton(), elevation: 0),
+          appBar: AppBar(
+            leading: const BackButton(),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            centerTitle: true,
+            actions: [
+              Builder(
+                builder:
+                    (context) => IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+              ),
+            ],
+          ),
+          drawer: AppDrawer(),
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -53,10 +84,13 @@ class PatientDetail extends ConsumerWidget {
                   height: height,
                   profilePic: profilePic,
                   dni: dni,
-                  onEdit: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => PatientModifier(id: id)),
-                  ),
+                  onEdit:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PatientModifier(id: id),
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 24),
                 PatientActions(id: id),
@@ -95,7 +129,7 @@ class _InfoCard extends StatelessWidget {
     required this.height,
     this.profilePic,
     required this.onEdit,
-    required this.dni
+    required this.dni,
   });
 
   @override
@@ -116,26 +150,49 @@ class _InfoCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: (profilePic?.isNotEmpty ?? false) ? NetworkImage(profilePic!) : null,
+                backgroundImage:
+                    (profilePic?.isNotEmpty ?? false)
+                        ? NetworkImage(profilePic!)
+                        : null,
                 backgroundColor: Colors.grey[400],
-                child: (profilePic?.isEmpty ?? true)
-                    ? const Icon(Icons.person, size: 50, color: Colors.white)
-                    : null,
+                child:
+                    (profilePic?.isEmpty ?? true)
+                        ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.white,
+                        )
+                        : null,
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const Divider(),
-                    Text('DNI: $dni', style: const TextStyle(color: Colors.black54)),
+                    Text(
+                      'DNI: $dni',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                     const Divider(),
                     Text(email, style: const TextStyle(color: Colors.black54)),
                     const Divider(),
-                    Text('Edad: $age', style: const TextStyle(color: Colors.black54)),
+                    Text(
+                      'Edad: $age',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                     const Divider(),
-                    Text('$weight kg / $height cm', style: const TextStyle(color: Colors.black54)),
+                    Text(
+                      '$weight kg / $height cm',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                   ],
                 ),
               ),
@@ -157,6 +214,7 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
+
 /// Widget con botones
 class PatientActions extends StatelessWidget {
   final String id;
@@ -172,10 +230,7 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Enviar archivos',
             onTap: () {
-              context.pushNamed(
-                'archivos',
-                pathParameters: {'id': id},
-              );
+              context.pushNamed('archivos', pathParameters: {'id': id});
             },
           ),
         ),
@@ -185,10 +240,7 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Ver calendario',
             onTap: () {
-              context.pushNamed(
-                'calendar',
-                pathParameters: {'id': id},
-              );
+              context.pushNamed('calendar', pathParameters: {'id': id});
             },
           ),
         ),
@@ -198,10 +250,7 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Ver historial de turnos',
             onTap: () {
-              context.pushNamed(
-              'appointments',
-              pathParameters: {'id': id},
-             );
+              context.pushNamed('appointments', pathParameters: {'id': id});
             },
           ),
         ),
@@ -209,7 +258,6 @@ class PatientActions extends StatelessWidget {
     );
   }
 }
-
 
 class AccountStatusButton extends StatelessWidget {
   final bool isActive;
@@ -244,7 +292,9 @@ class AccountStatusButton extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
           contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
           content: SizedBox(
             width: 250,
@@ -263,36 +313,53 @@ class AccountStatusButton extends StatelessWidget {
                     OutlinedButton(
                       onPressed: () => Navigator.of(dialogContext).pop(),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
                       child: const Text(
                         'CANCELAR',
-                        style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF706B66),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     OutlinedButton(
                       onPressed: () async {
                         Navigator.of(dialogContext).pop();
-                        await ref.read(userProvider.notifier).updateUserState(id, !isActive);
+                        await ref
+                            .read(userProvider.notifier)
+                            .updateUserState(id, !isActive);
                         _showResultDialog(context);
                         ref.refresh(paginatedUsersProvider);
-
                       },
                       style: OutlinedButton.styleFrom(
                         backgroundColor: const Color(0xFFB5D6B2),
                         side: const BorderSide(color: Colors.black),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
                       child: const Text(
                         'CONFIRMAR',
-                        style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF706B66),
+                        ),
                       ),
                     ),
                   ],
@@ -310,7 +377,9 @@ class AccountStatusButton extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
           content: SizedBox(
             width: 250,
             child: Column(
@@ -321,7 +390,10 @@ class AccountStatusButton extends StatelessWidget {
                       ? '¡Cuenta deshabilitada correctamente!'
                       : '¡Cuenta habilitada correctamente!',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 const Divider(),
@@ -331,10 +403,15 @@ class AccountStatusButton extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     backgroundColor: const Color(0xFFB5D6B2),
                     side: const BorderSide(color: Colors.black),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
                   child: const Text(
                     'VOLVER',
