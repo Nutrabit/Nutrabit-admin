@@ -17,7 +17,9 @@ class PatientRegistration extends StatelessWidget {
         title: const Text('Nuevo paciente'),
         leading: const BackButton(),
         actions: [Logout()],
+        backgroundColor: const Color(0xFFFEECDA),
       ),
+      backgroundColor: const Color(0xFFFEECDA),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: PatientRegistrationForm(),

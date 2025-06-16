@@ -53,7 +53,9 @@ class _PatientListState extends ConsumerState<PatientList> {
         title: const Text('Pacientes'),
         leading: const BackButton(),
         actions: const [Logout()],
+        backgroundColor: const Color(0xFFFEECDA),
       ),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Column(
         children: [
           const SizedBox(height: 25),
