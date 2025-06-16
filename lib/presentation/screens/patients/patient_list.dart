@@ -52,6 +52,7 @@ class _PatientListState extends ConsumerState<PatientList> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,  
         centerTitle: true,
         title: const Text('Pacientes'),
         leading: const BackButton(),
@@ -65,6 +66,7 @@ class _PatientListState extends ConsumerState<PatientList> {
         ],  
       ),
       drawer: AppDrawer(),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Column(
         children: [
           const SizedBox(height: 25),

@@ -88,6 +88,7 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
                 ],
       ),
     drawer: AppDrawer(),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Stack(
         children: [
           Padding(

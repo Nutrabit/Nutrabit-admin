@@ -20,7 +20,8 @@ class CourseListScreen extends ConsumerWidget {
       drawer: const AppDrawer(),
       appBar: AppBar(
         leading: BackButton(),
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFFEECDA),
+        scrolledUnderElevation: 0,  
         elevation: 0, 
         centerTitle: true, 
         actions: [

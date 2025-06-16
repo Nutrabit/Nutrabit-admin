@@ -4,7 +4,6 @@ import 'package:nutrabit_admin/core/services/user_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
-import 'package:nutrabit_admin/widgets/logout.dart';
 import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class PatientRegistration extends StatelessWidget {
@@ -26,6 +25,7 @@ class PatientRegistration extends StatelessWidget {
           ),],
       ),
       drawer: const AppDrawer(),
+      backgroundColor: const Color(0xFFFEECDA),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: PatientRegistrationForm(),
