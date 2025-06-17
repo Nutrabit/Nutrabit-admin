@@ -73,7 +73,7 @@ class MobileHomePage extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      drawer: const AppDrawer(),
+      endDrawer: const AppDrawer(),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
@@ -84,7 +84,7 @@ class MobileHomePage extends StatelessWidget {
             builder:
                 (context) => IconButton(
                   icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
                 ),
           ),
         ],

@@ -65,12 +65,12 @@ class _AppointmentsScreenState extends ConsumerState<Appointments> {
                 builder:
                     (context) => IconButton(
                       icon: const Icon(Icons.menu),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
                     ),
               ),
             ],
           ),
-          drawer: AppDrawer(),
+          endDrawer: AppDrawer(),
           body: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(

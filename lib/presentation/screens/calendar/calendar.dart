@@ -92,13 +92,13 @@ class _CalendarScreenState extends ConsumerState<Calendar> {
                     builder:
                         (context) => IconButton(
                           icon: const Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
                         ),
                   ),
                 ],
               ),
               backgroundColor: const Color(0xFFFEECDA),
-              drawer: AppDrawer(),
+              endDrawer: AppDrawer(),
               body: Column(
                 children: [
                   //  Pasa name, lastname y profilePic al card

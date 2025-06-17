@@ -108,12 +108,12 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
                     builder:
                         (context) => IconButton(
                           icon: const Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
                         ),
                   ),
                 ],
       ),
-    drawer: AppDrawer(),
+    endDrawer: AppDrawer(),
       backgroundColor: const Color(0xFFFEECDA),
       body: Stack(
         children: [
@@ -293,9 +293,9 @@ Future<void> _createNotification(DateTime apptTime, patientID) async {
   
   final model = NotificationModel(
     id: '',
-    title: '¡Flor te mando algo!',
+    title: '¡Flor te mandó algo!',
     topic: patientID,
-    description: 'Revisa tus archivos.',
+    description: 'Revisá tus archivos.',
     scheduledTime: apptTime,
     endDate: apptTime,
     repeatEvery: 1,

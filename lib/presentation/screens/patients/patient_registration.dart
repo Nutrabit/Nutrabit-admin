@@ -20,11 +20,11 @@ class PatientRegistration extends StatelessWidget {
         actions: [Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
             ),
           ),],
       ),
-      drawer: const AppDrawer(),
+      endDrawer: const AppDrawer(),
       backgroundColor: const Color(0xFFFEECDA),
       body: const Padding(
         padding: EdgeInsets.all(16.0),

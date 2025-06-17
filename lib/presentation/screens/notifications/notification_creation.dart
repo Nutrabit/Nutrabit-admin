@@ -58,7 +58,7 @@ class _NotificationCreationScreenState
     final isEditing = widget.notification != null;
 
     return Scaffold(
-      drawer: AppDrawer(),
+      endDrawer: AppDrawer(),
       appBar: AppBar(
         leading: BackButton(),
         centerTitle: true,
@@ -70,7 +70,7 @@ class _NotificationCreationScreenState
             builder:
                 (context) => IconButton(
                   icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
                 ),
           ),
         ],

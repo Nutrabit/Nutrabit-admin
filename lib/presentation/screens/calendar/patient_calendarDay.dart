@@ -43,7 +43,7 @@ class _MobileCalendarDayView extends StatelessWidget {
     return Scaffold(
       // backgroundColor: const Color(0xFFF4E9F7),
         backgroundColor: const Color(0xFFFEECDA),
-      drawer: AppDrawer(),
+      endDrawer: AppDrawer(),
       appBar: AppBar(
         leading: BackButton(),
         // backgroundColor: const Color(0xFFF4E9F7),
@@ -57,7 +57,7 @@ class _MobileCalendarDayView extends StatelessWidget {
             builder:
                 (context) => IconButton(
                   icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
                 ),
           ),
         ],

@@ -17,7 +17,7 @@ class CourseListScreen extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      drawer: const AppDrawer(),
+      endDrawer: const AppDrawer(),
       appBar: AppBar(
         leading: BackButton(),
         backgroundColor: const Color(0xFFFEECDA),
@@ -29,7 +29,7 @@ class CourseListScreen extends ConsumerWidget {
             builder:
                 (context) => IconButton(
                   icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
                 ),
           ),
         ],

@@ -60,12 +60,12 @@ class _PatientListState extends ConsumerState<PatientList> {
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
             ),
           ),
         ],  
       ),
-      drawer: AppDrawer(),
+      endDrawer: AppDrawer(),
       backgroundColor: const Color(0xFFFEECDA),
       body: Column(
         children: [
