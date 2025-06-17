@@ -51,7 +51,11 @@ class _PatientListState extends ConsumerState<PatientList> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('Pacientes'),
-        leading: const BackButton(),
+        leading: BackButton(
+        onPressed: () {
+        context.go('/');
+        },
+        ),
         actions: const [Logout()],
         backgroundColor: const Color(0xFFFEECDA),
       ),
