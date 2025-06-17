@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/providers/interest_item_provider.dart';
-import 'package:flutter/foundation.dart';
-import 'package:nutrabit_admin/core/utils/decorations.dart'; // Import de estilos
+import 'package:flutter/foundation.dart'; // Para usar kIsWeb
 
 Future<bool?> showDeleteItemDialog(
     BuildContext context, WidgetRef ref, String itemId) {
@@ -13,12 +12,6 @@ Future<bool?> showDeleteItemDialog(
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            backgroundColor: defaultAlertDialogStyle.backgroundColor,
-            elevation: defaultAlertDialogStyle.elevation,
-            shape: defaultAlertDialogStyle.shape,
-            titleTextStyle: defaultAlertDialogStyle.titleTextStyle,
-            contentTextStyle: defaultAlertDialogStyle.contentTextStyle,
-            contentPadding: defaultAlertDialogStyle.contentPadding,
             title: const Text('Confirmar eliminación'),
             content: const Text('¿Seguro que quieres eliminar este ítem?'),
             actions: [
@@ -32,13 +25,11 @@ Future<bool?> showDeleteItemDialog(
                   ),
                 )
               else ...[
-                ElevatedButton(
-                  style: defaultAlertDialogStyle.buttonStyle,
+                TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text('Cancelar', style: defaultAlertDialogStyle.buttonTextStyle),
+                  child: const Text('Cancelar'),
                 ),
-                ElevatedButton(
-                  style: defaultAlertDialogStyle.buttonStyle,
+                TextButton(
                   onPressed: () async {
                     setState(() => isLoading = true);
                     await ref.read(interestItemsProvider.notifier).deleteInterestItem(itemId);
@@ -46,7 +37,7 @@ Future<bool?> showDeleteItemDialog(
                       Navigator.of(ctx).pop(true);
                     }
                   },
-                  child: Text('Eliminar', style: defaultAlertDialogStyle.buttonTextStyle),
+                  child: const Text('Eliminar'),
                 ),
               ],
             ],
@@ -68,25 +59,24 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            backgroundColor: defaultAlertDialogStyle.backgroundColor,
-            elevation: defaultAlertDialogStyle.elevation,
-            shape: defaultAlertDialogStyle.shape,
-            titleTextStyle: defaultAlertDialogStyle.titleTextStyle,
-            contentTextStyle: defaultAlertDialogStyle.contentTextStyle,
-            contentPadding: defaultAlertDialogStyle.contentPadding,
             title: const Text('Agregar ítem'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: titleController,
-                  decoration: inputDecoration('Título'),
+                  decoration: const InputDecoration(
+                    labelText: 'Título',
+                  ),
                   autofocus: !kIsWeb,
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: urlController,
-                  decoration: inputDecoration('URL', suffix: 'https://...'),
+                  decoration: const InputDecoration(
+                    labelText: 'URL',
+                    hintText: 'https://...',
+                  ),
                   keyboardType: TextInputType.url,
                 ),
               ],
@@ -102,13 +92,11 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
                   ),
                 )
               else ...[
-                ElevatedButton(
-                  style: defaultAlertDialogStyle.buttonStyle,
+                TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text('Cancelar', style: defaultAlertDialogStyle.buttonTextStyle),
+                  child: const Text('Cancelar'),
                 ),
-                ElevatedButton(
-                  style: defaultAlertDialogStyle.buttonStyle,
+                TextButton(
                   onPressed: () async {
                     final url = urlController.text.trim();
                     final title = titleController.text.trim();
@@ -120,7 +108,7 @@ Future<void> showAddInterestDialog(BuildContext context, WidgetRef ref) {
                       Navigator.of(ctx).pop();
                     }
                   },
-                  child: Text('Confirmar', style: defaultAlertDialogStyle.buttonTextStyle),
+                  child: const Text('Confirmar'),
                 ),
               ],
             ],
