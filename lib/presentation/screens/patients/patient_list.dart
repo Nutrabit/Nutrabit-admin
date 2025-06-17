@@ -49,8 +49,6 @@ class _PatientListState extends ConsumerState<PatientList> {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Pacientes'),
         leading: BackButton(
         onPressed: () {
         context.go('/');
