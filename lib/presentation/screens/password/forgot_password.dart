@@ -36,8 +36,7 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
           '¡Email enviado!\nRevisá tu bandeja de entrada para restablecer tu contraseña.',
       id: '/login', // la ruta a la que vas después
       onNavigate: (ctx, route) {
-        // Aquí ya no hay logout, simplemente navegas
-        ctx.go(route);
+        ctx.go(route); // va al login
       },
     );
   }
@@ -110,7 +109,6 @@ class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
                                 width: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                              // ✅ Texto normal si no está cargando
                               : const Text('Enviar email de recuperación'),
                     ),
                   ),

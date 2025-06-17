@@ -57,7 +57,7 @@ class _ChangePasswordState extends ConsumerState<ChangePassword> {
       context: context,
       message:
           '¡Contraseña actualizada correctamente!\nPor favor, vuelva a iniciar sesión.',
-      id: '/login', // aquí «envías» la ruta
+      id: '/login', // setea la ruta
       onNavigate: (ctx, route) async {
         final result = await ref.read(authProvider.notifier).logout();
         if (result) {

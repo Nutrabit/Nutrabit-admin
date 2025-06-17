@@ -348,7 +348,6 @@ class _ShowHiddenIndicator extends StatelessWidget {
         ocultoManualmente
             ? 'Oculto manualmente'
             : 'Oculto programado. El curso se visualizará entre el ${DateFormat('d MMMM y', 'es').format(showFrom!)} y el ${DateFormat('d MMMM y', 'es').format(showUntil!)}';
-    // Si quieres forzar un ancho máximo, añades ConstrainedBox:
     return Positioned(
       top: 8,
       left: 8,
@@ -424,7 +423,7 @@ class CourseOptionsMenu extends ConsumerWidget {
       onSelected: (action) async {
         switch (action) {
           case 'edit':
-            // Se abre pantalla de edición y esperamos un bool
+            // Se abre pantalla de edición y retorna un bool
             final updated = await context.push<bool>(
               '/cursos/editar',
               extra: course, // pasamos el objeto course para no volver a fetch

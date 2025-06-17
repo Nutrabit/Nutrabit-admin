@@ -13,49 +13,6 @@ class Logout extends ConsumerStatefulWidget {
 }
 
 class _LogoutState extends ConsumerState<Logout> {
-  //  void _confirmLogout(BuildContext context) {
-  //     showDialog(
-  //       context: context,
-  //       builder: (BuildContext context) {
-  //         return AlertDialog(
-  //           title: const Text('¿Cerrar sesión?'),
-  //           content: const Text('¿Estás segura/o de que querés cerrar sesión?'),
-  //           actions: <Widget>[
-  //             TextButton(
-  //               child: const Text('Cancelar'),
-  //               onPressed: () {
-  //                 Navigator.of(context).pop(); // Cierra el diálogo
-  //               },
-  //             ),
-  //             TextButton(
-  //               onPressed: () async {
-  //                 Navigator.of(context).pop(); // Cierra el diálogo
-  //                 final result = await ref.read(authProvider.notifier).logout();
-  //                 if (result == true) {
-  //                   if (mounted) context.go('/login');
-  //                 } else {
-  //                   if (mounted) {
-  //                     ScaffoldMessenger.of(context).clearSnackBars();
-  //                     ScaffoldMessenger.of(context).showSnackBar(
-  //                       const SnackBar(content: Text('Error al cerrar sesión')),
-  //                     );
-  //                   }
-  //                 }
-  //               },
-  //               style: TextButton.styleFrom(
-  //                     backgroundColor: Color(0xFFD7F9DE),
-  //                     foregroundColor: Color(0xFF606060),
-  //                     shape: RoundedRectangleBorder(
-  //                       borderRadius: BorderRadius.circular(10),
-  //                     ),
-  //                   ),
-  //               child: const Text('Confirmar'),
-  //             ),
-  //           ],
-  //         );
-  //       },
-  //     );
-  // }
   void _confirmLogout(BuildContext context) {
     final style = defaultAlertDialogStyle;
 
