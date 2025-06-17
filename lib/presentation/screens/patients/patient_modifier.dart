@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'package:nutrabit_admin/presentation/providers/user_provider.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class PatientModifier extends ConsumerStatefulWidget {
   final String id;
@@ -134,7 +135,17 @@ Future<void> _updatePatient() async {
             leading: const BackButton(),
             backgroundColor: const Color(0xFFFEECDA),
             elevation: 0,
+            actions: [
+              Builder(
+                builder:
+                    (context) => IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                    ),
+              ),
+            ],
           ),
+          endDrawer: AppDrawer(),
           backgroundColor: const Color(0xFFFEECDA),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),

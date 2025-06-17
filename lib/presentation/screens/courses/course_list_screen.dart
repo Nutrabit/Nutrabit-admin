@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/course_provider.dart';
 import '../../../core/models/course_model.dart';
@@ -15,7 +16,24 @@ class CourseListScreen extends ConsumerWidget {
     final asyncCourses = ref.watch(courseListProvider);
 
     return Scaffold(
-      appBar: AppBar(elevation: 0, centerTitle: true, backgroundColor: const Color(0xFFFEECDA)),
+      extendBodyBehindAppBar: true,
+      endDrawer: const AppDrawer(),
+      appBar: AppBar(
+        leading: BackButton(),
+        backgroundColor: const Color(0xFFFEECDA),
+        scrolledUnderElevation: 0,  
+        elevation: 0, 
+        centerTitle: true, 
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
+        ),
       backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

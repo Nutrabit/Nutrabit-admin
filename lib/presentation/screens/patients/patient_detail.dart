@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/core/utils/utils.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import '../../providers/user_provider.dart';
 import 'patient_modifier.dart';
 
@@ -16,17 +17,26 @@ class PatientDetail extends ConsumerWidget {
     final userAsync = ref.watch(userStreamProvider(id));
 
     return userAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(appBar: AppBar(), body: Center(child: Text('Error: $e'))),
+      loading:
+          () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error:
+          (e, _) => Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text('Error: $e')),
+          ),
       data: (snapshot) {
         if (!snapshot.exists) {
-          return Scaffold(appBar: AppBar(), body: const Center(child: Text('Paciente no encontrado')));
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Paciente no encontrado')),
+          );
         }
 
         final data = snapshot.data() as Map<String, dynamic>;
         final name = data['name'] ?? 'Sin nombre';
         final lastname = data['lastname'] ?? '';
-        final dni = data['dni'] ??'';
+        final dni = data['dni'] ?? '';
         final email = data['email'] ?? '-';
         final weightValue = data['weight'];
         final heightValue = data['height'];
@@ -34,11 +44,32 @@ class PatientDetail extends ConsumerWidget {
         final profilePic = data['profilePic'];
         final birthday = _parseDate(data['birthday']);
         final age = birthday != null ? calculateAge(birthday).toString() : '-';
-        final weight = (weightValue != null && weightValue != 0) ? weightValue.toString() : '-';
-        final height = (heightValue != null && heightValue != 0) ? heightValue.toString() : '-';
+        final weight =
+            (weightValue != null && weightValue != 0)
+                ? weightValue.toString()
+                : '-';
+        final height =
+            (heightValue != null && heightValue != 0)
+                ? heightValue.toString()
+                : '-';
 
         return Scaffold(
-          appBar: AppBar(leading: const BackButton(), elevation: 0, backgroundColor: const Color(0xFFFEECDA),),
+          appBar: AppBar(
+            leading: const BackButton(),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            centerTitle: true,
+            actions: [
+              Builder(
+                builder:
+                    (context) => IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                    ),
+              ),
+            ],
+          ),
+          endDrawer: AppDrawer(),
           backgroundColor: const Color(0xFFFEECDA),
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -60,10 +91,13 @@ class PatientDetail extends ConsumerWidget {
                       height: height,
                       profilePic: profilePic,
                       dni: dni,
-                      onEdit: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => PatientModifier(id: id)),
-                      ),
+                      onEdit:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PatientModifier(id: id),
+                            ),
+                          ),
                     );
 
                     if (isDesktop) {
@@ -115,12 +149,14 @@ class _InfoCard extends StatelessWidget {
     required this.height,
     this.profilePic,
     required this.onEdit,
-    required this.dni
+    required this.dni,
   });
 
   @override
   Widget build(BuildContext context) {
     final displayName = name.split(' ').map((e) => e.capitalize()).join(' ');
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -136,26 +172,49 @@ class _InfoCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: (profilePic?.isNotEmpty ?? false) ? NetworkImage(profilePic!) : null,
+                backgroundImage:
+                    (profilePic?.isNotEmpty ?? false)
+                        ? NetworkImage(profilePic!)
+                        : null,
                 backgroundColor: Colors.grey[400],
-                child: (profilePic?.isEmpty ?? true)
-                    ? const Icon(Icons.person, size: 50, color: Colors.white)
-                    : null,
+                child:
+                    (profilePic?.isEmpty ?? true)
+                        ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.white,
+                        )
+                        : null,
               ),
-              const SizedBox(width: 5),
+              SizedBox(width: screenWidth * 0.04),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const Divider(),
-                    Text('DNI: $dni', style: const TextStyle(color: Colors.black54)),
+                    Text(
+                      'DNI: $dni',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                     const Divider(),
                     Text(email, style: const TextStyle(color: Colors.black54)),
                     const Divider(),
-                    Text('Edad: $age', style: const TextStyle(color: Colors.black54)),
+                    Text(
+                      'Edad: $age',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                     const Divider(),
-                    Text('$weight kg / $height cm', style: const TextStyle(color: Colors.black54)),
+                    Text(
+                      '$weight kg / $height cm',
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                   ],
                 ),
               ),
@@ -163,8 +222,8 @@ class _InfoCard extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 5,
-          right: 20,
+          top: screenHeight * 0.005,
+          right: screenWidth * 0.008,
           child: Material(
             color: Colors.transparent,
             child: IconButton(
@@ -177,6 +236,7 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
+
 /// Widget con botones
 class PatientActions extends StatelessWidget {
   final String id;
@@ -192,10 +252,7 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Enviar archivos',
             onTap: () {
-              context.pushNamed(
-                'archivos',
-                pathParameters: {'id': id},
-              );
+              context.pushNamed('archivos', pathParameters: {'id': id});
             },
           ),
         ),
@@ -205,10 +262,7 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Ver calendario',
             onTap: () {
-              context.pushNamed(
-                'calendar',
-                pathParameters: {'id': id},
-              );
+              context.pushNamed('calendar', pathParameters: {'id': id});
             },
           ),
         ),
@@ -218,10 +272,7 @@ class PatientActions extends StatelessWidget {
           child: PatientActionButton(
             title: 'Ver historial de turnos',
             onTap: () {
-              context.pushNamed(
-              'appointments',
-              pathParameters: {'id': id},
-             );
+              context.pushNamed('appointments', pathParameters: {'id': id});
             },
           ),
         ),
@@ -229,7 +280,6 @@ class PatientActions extends StatelessWidget {
     );
   }
 }
-
 
 class AccountStatusButton extends StatelessWidget {
   final bool isActive;
@@ -259,123 +309,126 @@ class AccountStatusButton extends StatelessWidget {
     );
   }
 
- void _showConfirmDialog(BuildContext context) {
-  final style = defaultAlertDialogStyle;
+  void _showConfirmDialog(BuildContext context) {
+    final style = defaultAlertDialogStyle;
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        backgroundColor: style.backgroundColor,
-        elevation: style.elevation,
-        shape: style.shape,
-        titleTextStyle: style.titleTextStyle,
-        contentTextStyle: style.contentTextStyle,
-        contentPadding: style.contentPadding ?? const EdgeInsets.fromLTRB(24, 20, 24, 10),
-        content: SizedBox(
-          width: 250,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '¿Estás seguro de que deseas ${isActive ? 'deshabilitar' : 'habilitar'} a $name?',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              const Divider(),
-              const SizedBox(height: 1),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    style: style.buttonStyle?.copyWith(
-                      backgroundColor: MaterialStateProperty.all(const Color(0xFFFEECDa)),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: Colors.black),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: style.backgroundColor,
+          elevation: style.elevation,
+          shape: style.shape,
+          titleTextStyle: style.titleTextStyle,
+          contentTextStyle: style.contentTextStyle,
+          contentPadding:
+              style.contentPadding ?? const EdgeInsets.fromLTRB(24, 20, 24, 10),
+          content: SizedBox(
+            width: 250,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '¿Estás seguro de que deseas ${isActive ? 'deshabilitar' : 'habilitar'} a $name?',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      style: style.buttonStyle?.copyWith(
+                        backgroundColor: MaterialStateProperty.all(
+                          const Color(0xFFFEECDa),
+                        ),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: const BorderSide(color: Colors.black),
+                          ),
+                        ),
+                        minimumSize: MaterialStateProperty.all(
+                          const Size(110, 48),
+                        ), // Tamaño más cómodo
+                      ),
+                      child: Text(
+                        'CANCELAR',
+                        style: style.buttonTextStyle?.copyWith(
+                          color: const Color(0xFF706B66),
                         ),
                       ),
-                      minimumSize: MaterialStateProperty.all(const Size(110, 48)), // Tamaño más cómodo
                     ),
-                    child: Text(
-                      'CANCELAR',
-                      style: style.buttonTextStyle?.copyWith(color: const Color(0xFF706B66)),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.of(dialogContext).pop();
+                        await ref
+                            .read(userProvider.notifier)
+                            .updateUserState(id, !isActive);
+                        _showResultDialog(context);
+                        ref.refresh(paginatedUsersProvider);
+                      },
+                      style: style.buttonStyle?.copyWith(
+                        minimumSize: MaterialStateProperty.all(
+                          const Size(110, 48),
+                        ), // Igual que cancelar
+                      ),
+                      child: Text('CONFIRMAR', style: style.buttonTextStyle),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () async {
-                      Navigator.of(dialogContext).pop();
-                      await ref.read(userProvider.notifier).updateUserState(id, !isActive);
-                      _showResultDialog(context);
-                      ref.refresh(paginatedUsersProvider);
-                    },
-                    style: style.buttonStyle?.copyWith(
-                      minimumSize: MaterialStateProperty.all(const Size(110, 48)), // Igual que cancelar
-                    ),
-                    child: Text(
-                      'CONFIRMAR',
-                      style: style.buttonTextStyle,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
-void _showResultDialog(BuildContext context) {
-  final style = defaultAlertDialogStyle;
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: style.backgroundColor,
-        elevation: style.elevation,
-        shape: style.shape,
-        titleTextStyle: style.titleTextStyle,
-        contentTextStyle: style.contentTextStyle,
-        contentPadding: style.contentPadding ?? const EdgeInsets.all(20),
-        content: SizedBox(
-          width: 250,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                isActive
-                    ? '¡Cuenta deshabilitada correctamente!'
-                    : '¡Cuenta habilitada correctamente!',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              const Divider(),
-              const SizedBox(height: 6),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: style.buttonStyle,
-                child: Text(
-                  'VOLVER',
-                  style: style.buttonTextStyle,
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
+  void _showResultDialog(BuildContext context) {
+    final style = defaultAlertDialogStyle;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: style.backgroundColor,
+          elevation: style.elevation,
+          shape: style.shape,
+          titleTextStyle: style.titleTextStyle,
+          contentTextStyle: style.contentTextStyle,
+          contentPadding: style.contentPadding ?? const EdgeInsets.all(20),
+          content: SizedBox(
+            width: 250,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isActive
+                      ? '¡Cuenta deshabilitada correctamente!'
+                      : '¡Cuenta habilitada correctamente!',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 6),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: style.buttonStyle,
+                  child: Text('VOLVER', style: style.buttonTextStyle),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class PatientActionButton extends StatelessWidget {

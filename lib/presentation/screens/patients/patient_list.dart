@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nutrabit_admin/widgets/logout.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import '../../providers/user_provider.dart';
 import '../../../core/models/app_users.dart';
 import '../../../core/utils/utils.dart';
@@ -48,13 +48,24 @@ class _PatientListState extends ConsumerState<PatientList> {
         : ref.watch(searchUsersProvider(query));
 
     return Scaffold(
+
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,  
         centerTitle: true,
         title: const Text('Pacientes'),
         leading: const BackButton(),
-        actions: const [Logout()],
-        backgroundColor: const Color(0xFFFEECDA),
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+            ),
+          ),
+        ],  
       ),
+      endDrawer: AppDrawer(),
       backgroundColor: const Color(0xFFFEECDA),
       body: Column(
         children: [

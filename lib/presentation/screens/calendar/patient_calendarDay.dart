@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:nutrabit_admin/presentation/providers/events_provider.dart';
 import 'package:nutrabit_admin/core/models/event_type.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class CalendarDayPatient extends ConsumerWidget {
   final DateTime date;
@@ -40,13 +41,26 @@ class _MobileCalendarDayView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4E9F7),
+      // backgroundColor: const Color(0xFFF4E9F7),
+        backgroundColor: const Color(0xFFFEECDA),
+      endDrawer: AppDrawer(),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF4E9F7),
+        leading: BackButton(),
+        // backgroundColor: const Color(0xFFF4E9F7),
+        backgroundColor: const Color(0xFFFEECDA),
         title: const Text("Día de calendario", style: TextStyle(color: Colors.black)),
         centerTitle: true,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
       ),
       body: _EventListContent(ref: ref, date: date, patientId: patientId, isWeb: false),
     );

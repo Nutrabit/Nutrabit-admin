@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/models/topic.dart';
 import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
 import 'package:nutrabit_admin/core/models/notification_model.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 // Pantalla principal
 class NotificationsListScreen extends ConsumerWidget {
@@ -15,9 +16,23 @@ class NotificationsListScreen extends ConsumerWidget {
     // Trae el topic seleccionado por el usuario en el filtro
     final selectedTopic = ref.watch(selectedTopicProvider);
     return Scaffold(
+      endDrawer: const AppDrawer(),
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Notificaciones'),
         backgroundColor: const Color(0xFFFEECDA),
+        scrolledUnderElevation: 0,  
+        elevation: 0, 
+        centerTitle: true, 
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFFEECDA),
       body: notificationsAsync.when(

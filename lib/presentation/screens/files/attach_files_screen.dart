@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
+import 'package:nutrabit_admin/core/models/notification_model.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import '../../providers/file_provider.dart';
 import '../../../core/models/file_type.dart';
 import '../../../core/services/file_service.dart';
@@ -82,6 +85,10 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
       ),
     ),
   );
+
+    if (success) {
+      await _createNotification(Timestamp.now().toDate(), widget.patientId);
+    }
 }
   @override
   Widget build(BuildContext context) {
@@ -93,8 +100,20 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        backgroundColor: const Color(0xFFFEECDA),
+        backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+                actions: [
+                  Builder(
+                    builder:
+                        (context) => IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
+                        ),
+                  ),
+                ],
       ),
+    endDrawer: AppDrawer(),
       backgroundColor: const Color(0xFFFEECDA),
       body: Stack(
         children: [
@@ -266,4 +285,29 @@ class LoadingOverlay extends StatelessWidget {
         color: const Color.fromARGB(51, 0, 0, 0),
         child: const Center(child: CircularProgressIndicator()),
       );
+}
+
+
+
+Future<void> _createNotification(DateTime apptTime, patientID) async {
+  
+  final model = NotificationModel(
+    id: '',
+    title: '¡Flor te mandó algo!',
+    topic: patientID,
+    description: 'Revisá tus archivos.',
+    scheduledTime: apptTime,
+    endDate: apptTime,
+    repeatEvery: 1,
+    urlIcon: '',
+    cancel: false,
+  );
+
+  final notificationService = NotificationService();
+
+  try {
+    await notificationService.createNotification(model);
+  } catch (e) {
+    print(e);
+  };
 }
