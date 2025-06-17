@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/core/utils/utils.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 import 'package:nutrabit_admin/presentation/providers/change_password_provider.dart';
 
@@ -51,68 +52,22 @@ class _ChangePasswordState extends ConsumerState<ChangePassword> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
   void showPopup() {
-    showDialog(
+    showGenericPopupBack(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-          title: const Text(
-            '¡Contraseña actualizada correctamente!',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: Color(0xFF2F2F2F),
-            ),
-          ),
-          content: SizedBox(
-            width: 250,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Por favor, vuelva a iniciar sesión.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                    color: Color(0xFF2F2F2F),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Divider(thickness: 1),
-                const SizedBox(height: 6),
-                OutlinedButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop(); // Cierra el diálogo
-                    final result =
-                        await ref.read(authProvider.notifier).logout();
-                    if (result == true) {
-                      if (mounted) context.go('/login');
-                    } else {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).clearSnackBars();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Error al cerrar sesión'),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text(
-                    'Aceptar',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF706B66)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+      message:
+          '¡Contraseña actualizada correctamente!\nPor favor, vuelva a iniciar sesión.',
+      id: '/login', // aquí «envías» la ruta
+      onNavigate: (ctx, route) async {
+        final result = await ref.read(authProvider.notifier).logout();
+        if (result) {
+          ctx.go(route);
+        } else {
+          ScaffoldMessenger.of(ctx).clearSnackBars();
+          ScaffoldMessenger.of(ctx).showSnackBar(
+            const SnackBar(content: Text('Error al cerrar sesión')),
+          );
+        }
       },
     );
   }
@@ -146,98 +101,106 @@ class _ChangePasswordState extends ConsumerState<ChangePassword> {
         backgroundColor: const Color(0xFFFEECDA),
       ),
       backgroundColor: const Color(0xFFFEECDA),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _currentController,
-              obscureText: !currentPasswordVisible,
-              decoration: InputDecoration(
-                labelText: 'Contraseña actual',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    currentPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      currentPasswordVisible = !currentPasswordVisible;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _newController,
-              obscureText: !nextPasswordVisible,
-              decoration: InputDecoration(
-                labelText: 'Nueva contraseña',
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    nextPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      nextPasswordVisible = !nextPasswordVisible;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _repeatController,
-              obscureText: !repeatPasswordVisible,
-              decoration: InputDecoration(
-                labelText: 'Repetir contraseña',
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    repeatPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      repeatPasswordVisible = !repeatPasswordVisible;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isLoading ? null : changePassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(220, 96, 122, 1),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child:
-                  _isLoading
-                      ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
+      body: Align(
+        alignment: Alignment.center,
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _currentController,
+                    obscureText: !currentPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña actual',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          currentPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
-                      )
-                      : const Text('Aceptar'),
+                        onPressed: () {
+                          setState(() {
+                            currentPasswordVisible = !currentPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _newController,
+                    obscureText: !nextPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Nueva contraseña',
+                      border: OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          nextPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            nextPasswordVisible = !nextPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _repeatController,
+                    obscureText: !repeatPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Repetir contraseña',
+                      border: OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          repeatPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            repeatPasswordVisible = !repeatPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : changePassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromRGBO(220, 96, 122, 1),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Text('Aceptar'),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -149,7 +149,10 @@ const AlertDialogStyle defaultAlertDialogStyle = AlertDialogStyle(
   ),
   buttonStyle: ButtonStyle(
     backgroundColor: MaterialStatePropertyAll(Color(0xFFDC607A)),
-    padding: MaterialStatePropertyAll(EdgeInsets.symmetric(vertical: 12)),
+    padding: WidgetStatePropertyAll(
+      EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    ),
+     minimumSize: MaterialStatePropertyAll(Size(100, 40)),
     shape: MaterialStatePropertyAll(
       RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),

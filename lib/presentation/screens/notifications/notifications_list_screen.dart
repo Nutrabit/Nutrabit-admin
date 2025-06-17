@@ -5,6 +5,7 @@ import 'package:nutrabit_admin/core/models/topic.dart';
 import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
 import 'package:nutrabit_admin/core/models/notification_model.dart';
 import 'package:nutrabit_admin/widgets/drawer.dart';
+import '../../../core/utils/decorations.dart';
 
 // Pantalla principal
 class NotificationsListScreen extends ConsumerWidget {
@@ -21,9 +22,9 @@ class NotificationsListScreen extends ConsumerWidget {
         leading: BackButton(),
         title: const Text('Notificaciones'),
         backgroundColor: const Color(0xFFFEECDA),
-        scrolledUnderElevation: 0,  
-        elevation: 0, 
-        centerTitle: true, 
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        centerTitle: true,
         actions: [
           Builder(
             builder:
@@ -368,21 +369,29 @@ class _NotificationMenu extends ConsumerWidget {
             break;
           // Eliminar
           case 'delete':
+            final style = defaultAlertDialogStyle;
             final confirm = await showDialog<bool>(
               context: context,
               builder:
-                  // PopUp para eliminar
                   (_) => AlertDialog(
+                    shape: style.shape,
+                    backgroundColor: style.backgroundColor,
+                    elevation: style.elevation,
+                    titleTextStyle: style.titleTextStyle,
+                    contentTextStyle: style.contentTextStyle,
+                    contentPadding: style.contentPadding,
                     title: const Text('¿Eliminar notificación?'),
                     content: const Text('Esta acción no se puede deshacer.'),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancelar'),
+                        style: style.buttonStyle,
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Cancelar', style: style.buttonTextStyle),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Eliminar'),
+                        style: style.buttonStyle,
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text('Eliminar', style: style.buttonTextStyle),
                       ),
                     ],
                   ),
@@ -395,7 +404,10 @@ class _NotificationMenu extends ConsumerWidget {
                     (_) => const Center(child: CircularProgressIndicator()),
               );
               await service.deleteNotification(notification.id);
-              Navigator.of(context).pop();
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pop(); // cierra el spinner
               ref.read(notificationsControllerProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
