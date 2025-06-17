@@ -53,9 +53,11 @@ class _PatientListState extends ConsumerState<PatientList> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,  
-        centerTitle: true,
-        title: const Text('Pacientes'),
-        leading: const BackButton(),
+        leading: BackButton(
+        onPressed: () {
+        context.go('/');
+        },
+        ),
         actions: [
           Builder(
             builder: (context) => IconButton(
