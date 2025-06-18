@@ -72,7 +72,7 @@ class PatientDetail extends ConsumerWidget {
           endDrawer: AppDrawer(),
           backgroundColor: const Color(0xFFFEECDA),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [

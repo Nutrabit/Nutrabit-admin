@@ -101,7 +101,7 @@ int calculateAge(DateTime birthday) {
 
 
 
-  Future<void> showGenericPopupBack({
+Future<void> showGenericPopupBack({
   required BuildContext context,
   required String message,
   required String id,
@@ -113,39 +113,47 @@ int calculateAge(DateTime birthday) {
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final isWeb = screenWidth > 600;
+
       return Dialog(
         backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: style.decoration,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              style.icon,
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: style.messageTextStyle,
-              ),
-              const SizedBox(height: 16),
-              const Divider(thickness: 1),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    onNavigate(context, id);
-                  },
-                  style: style.buttonStyle,
-                  child: Text(
-                    'VOLVER',
-                    style: style.buttonTextStyle,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isWeb ? 400 : double.infinity, // ancho menor para web
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: style.decoration,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                style.icon,
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: style.messageTextStyle,
+                ),
+                const SizedBox(height: 16),
+                const Divider(thickness: 1),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onNavigate(context, id);
+                    },
+                    style: style.buttonStyle,
+                    child: Text(
+                      'VOLVER',
+                      style: style.buttonTextStyle,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
