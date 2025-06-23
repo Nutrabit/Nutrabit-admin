@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/course_provider.dart';
 import '../../../core/models/course_model.dart';
+import '../../../core/utils/decorations.dart';
 
 // Pantalla principal de cursos
 class CourseListScreen extends ConsumerWidget {
@@ -15,7 +17,24 @@ class CourseListScreen extends ConsumerWidget {
     final asyncCourses = ref.watch(courseListProvider);
 
     return Scaffold(
-      appBar: AppBar(elevation: 0, centerTitle: true, backgroundColor: const Color(0xFFFEECDA)),
+      extendBodyBehindAppBar: true,
+      endDrawer: const AppDrawer(),
+      appBar: AppBar(
+        leading: BackButton(),
+        backgroundColor: const Color(0xFFFEECDA),
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
+      ),
       backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -88,10 +107,7 @@ class _CourseHeaderImage extends StatelessWidget {
         const SizedBox(height: 8),
         const Text(
           '¡Estos son los talleres que estoy dando!',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           textAlign: TextAlign.center,
         ),
       ],
@@ -323,20 +339,22 @@ class _ShowHiddenIndicator extends StatelessWidget {
     final ahora = DateTime.now();
     final ocultoManualmente = showCourse == false;
     final tieneRango = showFrom != null && showUntil != null;
-    final fueraDeRango = tieneRango &&
-        (ahora.isBefore(showFrom!) || ahora.isAfter(showUntil!));
+    final fueraDeRango =
+        tieneRango && (ahora.isBefore(showFrom!) || ahora.isAfter(showUntil!));
     if (!ocultoManualmente && !fueraDeRango) {
       return const SizedBox.shrink();
     }
-    final label = ocultoManualmente
-        ? 'Oculto manualmente'
-        : 'Oculto programado. El curso se visualizará entre el ${DateFormat('d MMMM y', 'es').format(showFrom!)} y el ${DateFormat('d MMMM y', 'es').format(showUntil!)}';
-    // Si quieres forzar un ancho máximo, añades ConstrainedBox:
+    final label =
+        ocultoManualmente
+            ? 'Oculto manualmente'
+            : 'Oculto programado. El curso se visualizará entre el ${DateFormat('d MMMM y', 'es').format(showFrom!)} y el ${DateFormat('d MMMM y', 'es').format(showUntil!)}';
     return Positioned(
       top: 8,
       left: 8,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
@@ -350,9 +368,9 @@ class _ShowHiddenIndicator extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
-            softWrap: true,     
-            maxLines: null,        
-            overflow: TextOverflow.visible, 
+            softWrap: true,
+            maxLines: null,
+            overflow: TextOverflow.visible,
           ),
         ),
       ),
@@ -404,8 +422,8 @@ class CourseOptionsMenu extends ConsumerWidget {
       icon: const Icon(Icons.more_vert, color: Colors.white),
       onSelected: (action) async {
         switch (action) {
-          case 'editar':
-            // Se abre pantalla de edición y esperamos un bool
+          case 'edit':
+            // Se abre pantalla de edición y retorna un bool
             final updated = await context.push<bool>(
               '/cursos/editar',
               extra: course, // pasamos el objeto course para no volver a fetch
@@ -421,8 +439,19 @@ class CourseOptionsMenu extends ConsumerWidget {
             }
             break;
           case 'show':
-            await ref.read(courseProvider).updateShowCourse(course.id);
-            ref.invalidate(courseListProvider);
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
+            );
+            try {
+              await ref.read(courseProvider).updateShowCourse(course.id);
+              ref.invalidate(courseListProvider);
+            } catch (e) {
+              debugPrint('Error al actualizar visibilidad: $e');
+            } finally {
+              Navigator.of(context, rootNavigator: true).pop();
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -433,74 +462,77 @@ class CourseOptionsMenu extends ConsumerWidget {
               ),
             );
             break;
-          case 'eliminar':
+          case 'delete':
             showDialog(
               context: context,
-              builder:
-                  (_) => AlertDialog(
-                    title: const Text('Eliminar curso'),
-                    content: const Text(
-                      '¿Seguro que quieres eliminar este curso?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => context.pop(),
-                        child: const Text('Cancelar'),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          // Se cierra el popup
-                          context.pop();
-                          // Se muestra el spinner
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder:
-                                (_) => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                          );
-                          try {
-                            // Borra el curso
-                            // Verifica si tiene imagen y la borra
-                            final imageUrl = course.picture;
-                            await ref
-                                .read(courseProvider)
-                                .deleteCourse(course.id, imageUrl: imageUrl);
-
-                            // Hace refresh de la lista de cursos
-                            ref.invalidate(courseListProvider);
-                          } catch (e) {
-                            debugPrint('Error al eliminar curso: $e');
-                          } finally {
-                            // Cierra el spinner y vuelve a la lista
-                            context.pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Curso eliminado correctamente'),
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
+              builder: (_) {
+                final s = defaultAlertDialogStyle;
+                return AlertDialog(
+                  shape: s.shape,
+                  backgroundColor: s.backgroundColor,
+                  elevation: s.elevation,
+                  contentPadding: s.contentPadding,
+                  titleTextStyle: s.titleTextStyle,
+                  contentTextStyle: s.contentTextStyle,
+                  title: const Text('Eliminar curso'),
+                  content: const Text(
+                    '¿Seguro que quieres eliminar este curso?',
                   ),
-            );
+                  actions: [
+                    TextButton(
+                      style: s.buttonStyle,
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text('Cancelar', style: s.buttonTextStyle),
+                    ),
+                    TextButton(
+                      style: s.buttonStyle,
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text('Eliminar', style: s.buttonTextStyle),
+                    ),
+                  ],
+                );
+              },
+            ).then((confirm) async {
+              if (confirm == true) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder:
+                      (_) => const Center(child: CircularProgressIndicator()),
+                );
+                try {
+                  final imageUrl = course.picture;
+                  await ref
+                      .read(courseProvider)
+                      .deleteCourse(course.id, imageUrl: imageUrl);
+                  ref.invalidate(courseListProvider);
+                } catch (e) {
+                  debugPrint('Error al eliminar curso: $e');
+                } finally {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Curso eliminado correctamente'),
+                    ),
+                  );
+                }
+              }
+            });
             break;
         }
       },
       itemBuilder:
           (_) => [
-            const PopupMenuItem(value: 'editar', child: Text('Editar')),
+            const PopupMenuItem(value: 'edit', child: Text('Editar')),
             PopupMenuItem(
               value: 'show',
-              child: Text(course.showCourse ? 'Ocultar manualmente' : 'Mostrar manualmente'),
+              child: Text(
+                course.showCourse
+                    ? 'Ocultar manualmente'
+                    : 'Mostrar manualmente',
+              ),
             ),
-            const PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),
+            const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
           ],
     );
   }

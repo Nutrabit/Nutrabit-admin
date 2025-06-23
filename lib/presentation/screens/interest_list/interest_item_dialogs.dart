@@ -1,5 +1,3 @@
-// interest_item_dialogs.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nutrabit_admin/presentation/providers/interest_item_provider.dart';

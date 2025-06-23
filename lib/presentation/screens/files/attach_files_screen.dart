@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
+import 'package:nutrabit_admin/core/models/notification_model.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 import '../../providers/file_provider.dart';
 import '../../../core/models/file_type.dart';
 import '../../../core/services/file_service.dart';
 import '../../../core/utils/file_picker_util.dart';
+import '../../../core/utils/decorations.dart';
 
 class AttachFilesScreen extends ConsumerStatefulWidget {
   final String patientId;
@@ -19,9 +23,9 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
   final Map<String, FileType> fileTypes = {
     'Plan de Alimentación': FileType.MEAL_PLAN,
     'Lista de Compras': FileType.SHOPPING_LIST,
-    'Plan de Ejercicios': FileType.EXERCISE_PLAN,
     'Recomendaciones': FileType.RECOMMENDATIONS,
     'Mediciones': FileType.MEASUREMENTS,
+    "Información Extra": FileType.EXTRA_INFORMATION,
   };
 
   bool _isUploading = false;
@@ -34,29 +38,58 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
   }
 
   Future<void> _uploadFiles() async {
-    final files = ref.read(fileProvider).files;
-    setState(() => _isUploading = true);
+  final files = ref.read(fileProvider).files;
+  setState(() => _isUploading = true);
 
-    final success = await FileUploaderService.uploadFiles(
-      files: files,
-      patientId: widget.patientId,
-    );
+  final success = await FileUploaderService.uploadFiles(
+    files: files,
+    patientId: widget.patientId,
+  );
 
-    if (!mounted) return;
+  if (!mounted) return;
 
-    ref.read(fileProvider.notifier).clear();
-    setState(() => _isUploading = false);
+  ref.read(fileProvider.notifier).clear();
+  setState(() => _isUploading = false);
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success
-            ? 'Archivos enviados exitosamente'
-            : 'Error enviando archivos'),
+  final popupStyle = getDefaultPopupStyle();
+
+  await showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      contentPadding: EdgeInsets.zero,
+      content: Container(
+        decoration: popupStyle.decoration,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            popupStyle.icon,
+            const SizedBox(height: 12),
+            Text(
+              success
+                  ? 'Archivos enviados exitosamente'
+                  : 'Error enviando archivos',
+              style: popupStyle.messageTextStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: popupStyle.buttonStyle,
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Aceptar', style: popupStyle.buttonTextStyle),
+            ),
+          ],
+        ),
       ),
-    );
-  }
+    ),
+  );
 
+    if (success) {
+      await _createNotification(Timestamp.now().toDate(), widget.patientId);
+    }
+}
   @override
   Widget build(BuildContext context) {
     final files = ref.watch(fileProvider).files;
@@ -67,7 +100,21 @@ class _AttachFilesScreenState extends ConsumerState<AttachFilesScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
+        backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+                actions: [
+                  Builder(
+                    builder:
+                        (context) => IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openEndDrawer(),
+                        ),
+                  ),
+                ],
       ),
+    endDrawer: AppDrawer(),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Stack(
         children: [
           Padding(
@@ -171,11 +218,22 @@ class SelectedFilesList extends StatelessWidget {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: const Text('Eliminar archivo'),
-                  content: const Text('¿Estás seguro de que deseas eliminar el archivo?'),
+                  backgroundColor: defaultAlertDialogStyle.backgroundColor,
+                  shape: defaultAlertDialogStyle.shape,
+                  contentPadding: defaultAlertDialogStyle.contentPadding,
+                  title: Text('Eliminar archivo', style: defaultAlertDialogStyle.titleTextStyle),
+                  content: Text('¿Estás seguro de que deseas eliminar el archivo?', style: defaultAlertDialogStyle.contentTextStyle),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-                    TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar')),
+                    ElevatedButton(
+                      style: defaultAlertDialogStyle.buttonStyle,
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text('Cancelar', style: defaultAlertDialogStyle.buttonTextStyle),
+                    ),
+                    ElevatedButton(
+                      style: defaultAlertDialogStyle.buttonStyle,
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text('Eliminar', style: defaultAlertDialogStyle.buttonTextStyle),
+                    ),
                   ],
                 ),
               );
@@ -203,25 +261,17 @@ class UploadFilesButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: hasFiles && !isUploading ? onUpload : null,
-      icon: const Icon(Icons.cloud_upload),
-      label: Text(
-        isUploading ? 'Subiendo...' : 'Subir archivos',
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      style: ButtonStyle(
-        minimumSize: WidgetStateProperty.all(const Size.fromHeight(50)),
-        backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-          if (states.contains(WidgetState.disabled)) return Colors.grey.shade400;
-          if (states.contains(WidgetState.pressed)) return const Color.fromARGB(255, 165, 70, 90);
-          return const Color(0xFFDC607A);
-        }),
-        foregroundColor: WidgetStateProperty.all(Colors.white),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton.icon(
+        onPressed: hasFiles && !isUploading ? onUpload : null,
+        icon: const Icon(Icons.cloud_upload),
+        label: Text(
+          isUploading ? 'Subiendo...' : 'Subir archivos',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        elevation: WidgetStateProperty.all(4),
+        style: mainButtonDecoration(), // <- Usamos el estilo reutilizable
       ),
     );
   }
@@ -235,4 +285,29 @@ class LoadingOverlay extends StatelessWidget {
         color: const Color.fromARGB(51, 0, 0, 0),
         child: const Center(child: CircularProgressIndicator()),
       );
+}
+
+
+
+Future<void> _createNotification(DateTime apptTime, patientID) async {
+  
+  final model = NotificationModel(
+    id: '',
+    title: '¡Flor te mandó algo!',
+    topic: patientID,
+    description: 'Revisá tus archivos.',
+    scheduledTime: apptTime,
+    endDate: apptTime,
+    repeatEvery: 1,
+    urlIcon: '',
+    cancel: false,
+  );
+
+  final notificationService = NotificationService();
+
+  try {
+    await notificationService.createNotification(model);
+  } catch (e) {
+    print(e);
+  };
 }

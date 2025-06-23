@@ -7,6 +7,7 @@ import 'package:nutrabit_admin/core/models/event_type.dart';
 import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/presentation/providers/events_provider.dart';
 import 'package:nutrabit_admin/presentation/providers/user_provider.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class Appointments extends ConsumerStatefulWidget {
   final String id;
@@ -51,57 +52,75 @@ class _AppointmentsScreenState extends ConsumerState<Appointments> {
         return Scaffold(
           backgroundColor: Color.fromRGBO(253, 238, 219, 1),
           appBar: AppBar(
-            backgroundColor: Color.fromRGBO(253, 238, 219, 1),
             leading: BackButton(
               onPressed: () {
                 context.pop();
               },
             ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            centerTitle: true,
+            actions: [
+              Builder(
+                builder:
+                    (context) => IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                    ),
+              ),
+            ],
           ),
-          body: Padding(
-            padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.2),
-            child:
-                appointmentEvents.isEmpty
-                    ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+          endDrawer: AppDrawer(),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.1,
+              ),
+              child:
+                  appointmentEvents.isEmpty
+                      ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Este usuario no tiene turnos registrados en la App',
+                              textAlign: TextAlign.center,
+                              style: textStyle,
+                            ),
+                          ],
+                        ),
+                      )
+                      : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Este usuario no tiene turnos registrados en la App',
-                            textAlign: TextAlign.center,
-                            style: textStyle,
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.1,
                           ),
+                          // if()
+                          Center(
+                            child: Text('Próximo turno', style: titleStyle),
+                          ),
+                          const SizedBox(height: 16),
+                          if (nextAppointment.isNotEmpty)
+                            ...nextAppointment.map((appt) {
+                              return _AppointmentItem(date: appt.date);
+                            }).toList(),
+                          if (nextAppointment.isEmpty)
+                            Text('No hay turnos registrados', style: textStyle),
+                          const Divider(height: 40),
+                          Center(
+                            child: Text('Últimos turnos', style: titleStyle),
+                          ),
+                          const SizedBox(height: 16),
+                          if (previousAppointments.isNotEmpty)
+                            ...previousAppointments.map((appt) {
+                              return _AppointmentItem(date: appt.date);
+                            }).toList(),
+                          if (previousAppointments.isEmpty)
+                            Text('No hay turnos registrados', style: textStyle),
                         ],
                       ),
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1,
-                        ),
-                        // if()
-                        Center(child: Text('Próximo turno', style: titleStyle)),
-                        const SizedBox(height: 16),
-                        if (nextAppointment.isNotEmpty)
-                          ...nextAppointment.map((appt) {
-                            return _AppointmentItem(date: appt.date);
-                          }).toList(),
-                        if (nextAppointment.isEmpty)
-                          Text('No hay turnos registrados', style: textStyle),
-                        const Divider(height: 40),
-                        Center(
-                          child: Text('Últimos turnos', style: titleStyle),
-                        ),
-                        const SizedBox(height: 16),
-                        if (previousAppointments.isNotEmpty)
-                          ...previousAppointments.map((appt) {
-                            return _AppointmentItem(date: appt.date);
-                          }).toList(),
-                        if (previousAppointments.isEmpty)
-                          Text('No hay turnos registrados', style: textStyle),
-                      ],
-                    ),
+            ),
           ),
         );
       },

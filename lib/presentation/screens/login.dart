@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:nutrabit_admin/presentation/providers/auth_provider.dart';
 import 'package:flutter/gestures.dart';
 
@@ -22,6 +24,39 @@ class _LoginState extends ConsumerState<Login> {
     passwordController.dispose();
     super.dispose();
   }
+
+    Future<void> _showPopUpFromFile(
+    BuildContext context,
+    String titulo,
+    String assetPath,
+  ) async {
+    final contenido = await rootBundle.loadString(assetPath);
+    final style = defaultAlertDialogStyle;
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: style.shape,
+      backgroundColor: style.backgroundColor,
+      elevation: style.elevation,
+      contentTextStyle: style.contentTextStyle,
+      contentPadding: style.contentPadding,
+            title: Text(titulo),
+            content: SizedBox(
+              height: 300,
+              child: SingleChildScrollView(child: Text(contenido)),
+            ),
+            actions: [
+              TextButton(
+                style: style.buttonStyle,
+                child: Text('Cerrar',style: style.buttonTextStyle),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +169,19 @@ class _LoginState extends ConsumerState<Login> {
                             });
                             final email = emailController.text;
                             final password = passwordController.text;
-                            // ignore: unused_local_variable
+                            if (email.isEmpty || password.isEmpty){
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                         'Por favor complete todos los campos'
+                                        ),
+                                      ),
+                                    );
+                                    setState(() {
+                              isLoading = false;
+                            });
+                            } else{
+                              // ignore: unused_local_variable
                             final cred = ref
                                 .read(authProvider.notifier)
                                 .login(email, password)
@@ -159,6 +206,7 @@ class _LoginState extends ConsumerState<Login> {
                                     );
                                   }
                                 });
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color.fromRGBO(220, 96, 122, 1),
@@ -199,7 +247,11 @@ class _LoginState extends ConsumerState<Login> {
                               recognizer:
                                   TapGestureRecognizer()
                                     ..onTap = () {
-                                      context.push('/terminos');
+                                      _showPopUpFromFile(
+                                        context,
+                                        'Términos de servicio',
+                                        'tos.txt',
+                                      );
                                     },
                             ),
                             TextSpan(text: ' y nuestra '),
@@ -212,7 +264,11 @@ class _LoginState extends ConsumerState<Login> {
                               recognizer:
                                   TapGestureRecognizer()
                                     ..onTap = () {
-                                      context.push('/privacidad');
+                                      _showPopUpFromFile(
+                                        context,
+                                        'Términos de servicio',
+                                        'privacidad.txt',
+                                      );
                                     },
                             ),
                           ],

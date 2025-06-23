@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:nutrabit_admin/core/models/topic.dart';
 import 'package:nutrabit_admin/presentation/providers/notification_provider.dart';
 import 'package:nutrabit_admin/core/models/notification_model.dart';
+import 'package:nutrabit_admin/widgets/drawer.dart';
+import '../../../core/utils/decorations.dart';
 
 // Pantalla principal
 class NotificationsListScreen extends ConsumerWidget {
@@ -15,27 +17,39 @@ class NotificationsListScreen extends ConsumerWidget {
     // Trae el topic seleccionado por el usuario en el filtro
     final selectedTopic = ref.watch(selectedTopicProvider);
     return Scaffold(
+      endDrawer: const AppDrawer(),
       appBar: AppBar(
+        leading: BackButton(),
         title: const Text('Notificaciones'),
         backgroundColor: const Color(0xFFFEECDA),
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFFEECDA),
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (notifications) {
-          // Filtra las notificaciones válidas (Objetivos + ALL)
-          final validNotifications =
-              notifications.where((n) => parseTopic(n.topic) != null).toList();
+          final allNotifications = notifications;
           // Si hay un topic seleccionado, filtra las notificaciones por ese topic
           final filteredNotifications =
               selectedTopic == null
-                  ? validNotifications
-                  : validNotifications.where((n) {
-                    final parsed = parseTopic(n.topic);
-                    return parsed == selectedTopic;
+                  // si no hay selección, muestro todas
+                  ? allNotifications
+                  // si hay selección, solo las que coincidan con ese Topic
+                  : allNotifications.where((n) {
+                    return parseTopic(n.topic) == selectedTopic;
                   }).toList();
-
           return Column(
             children: [
               // Filtro de objetivos/topics
@@ -270,13 +284,18 @@ class TopicFilterDropdown extends ConsumerWidget {
 }
 
 // Botón para crear notificaciones
-class _AddNotificationButton extends StatelessWidget {
+class _AddNotificationButton extends ConsumerWidget {
   const _AddNotificationButton();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return FloatingActionButton(
-      onPressed: () {
-        context.push('/notificaciones/crear');
+      onPressed: () async {
+        // Espera la respuesta de la creación de la notificación
+        final created = await context.push<bool>('/notificaciones/crear');
+        // Si viene true, recarga las notificaciones
+        if (created == true) {
+          ref.read(notificationsControllerProvider.notifier).reset();
+        }
       },
       backgroundColor: const Color(0xFFD7F9DE),
       foregroundColor: Colors.black,
@@ -350,21 +369,29 @@ class _NotificationMenu extends ConsumerWidget {
             break;
           // Eliminar
           case 'delete':
+            final style = defaultAlertDialogStyle;
             final confirm = await showDialog<bool>(
               context: context,
               builder:
-                  // PopUp para eliminar
                   (_) => AlertDialog(
+                    shape: style.shape,
+                    backgroundColor: style.backgroundColor,
+                    elevation: style.elevation,
+                    titleTextStyle: style.titleTextStyle,
+                    contentTextStyle: style.contentTextStyle,
+                    contentPadding: style.contentPadding,
                     title: const Text('¿Eliminar notificación?'),
                     content: const Text('Esta acción no se puede deshacer.'),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancelar'),
+                        style: style.buttonStyle,
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Cancelar', style: style.buttonTextStyle),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Eliminar'),
+                        style: style.buttonStyle,
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text('Eliminar', style: style.buttonTextStyle),
                       ),
                     ],
                   ),
@@ -377,7 +404,10 @@ class _NotificationMenu extends ConsumerWidget {
                     (_) => const Center(child: CircularProgressIndicator()),
               );
               await service.deleteNotification(notification.id);
-              Navigator.of(context).pop();
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pop(); // cierra el spinner
               ref.read(notificationsControllerProvider.notifier).reset();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

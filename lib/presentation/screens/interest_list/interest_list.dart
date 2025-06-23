@@ -27,7 +27,8 @@ class _InterestListState extends ConsumerState<InterestList> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:  const Color(0xFFFEECDA),
+        surfaceTintColor: Colors.transparent,
         elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -45,7 +46,7 @@ class _InterestListState extends ConsumerState<InterestList> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFFFF0F6),
+      backgroundColor: const Color(0xFFFEECDA),
       body: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),

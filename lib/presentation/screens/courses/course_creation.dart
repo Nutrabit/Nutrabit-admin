@@ -7,6 +7,7 @@ import 'package:nutrabit_admin/core/utils/decorations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:nutrabit_admin/widgets/drawer.dart';
 
 class CourseCreationScreen extends ConsumerStatefulWidget {
   final Course? course;
@@ -203,7 +204,22 @@ class _CourseCreationScreenState extends ConsumerState<CourseCreationScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.course != null;
     return Scaffold(
-      appBar: AppBar(),
+      endDrawer: AppDrawer(),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFEECDA),
+        scrolledUnderElevation: 0,  
+        elevation: 0, 
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+        ],
+      ),
+      backgroundColor: const Color(0xFFFEECDA),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
