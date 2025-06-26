@@ -91,7 +91,7 @@ Future<void> addUser(AppUser user) async {
   final auth = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
   try {
-    final String password = '123123';
+    final String password = generateRandomPassword();
     UserCredential userCredential = await auth.createUserWithEmailAndPassword(
       email: user.email,
       password: password,
