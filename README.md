@@ -1,19 +1,48 @@
-# NutraBit-Admin
+# NutraBit
 
-Resumen general
-NutraBit es una aplicación desarrollada en Flutter orientada a la gestión de pacientes para profesionales de la nutrición. Permite ingresar, visualizar y administrar datos de pacientes, junto con funcionalidades de calendario y notificaciones.  
-El alcance inicial se centra en funcionalidades básicas sin integración compleja con bases de datos, apuntando a una entrega funcional como trabajo práctico universitario.
+**NutraBit** es una aplicación desarrollada en **Flutter** orientada a la gestión de pacientes para profesionales de la nutrición. Está pensada como un espacio digital que centraliza y organiza la información del paciente, mejorando la comunicación y el seguimiento personalizado.
 
-Objetivo de la app
-La aplicación tiene como objetivo mejorar la experiencia del paciente en la gestión de sus archivos personales, como estudios de sangre, informes PDF de mediciones corporales, planes alimenticios, fotos de comidas, entre otros. De esta manera, se evita el uso del correo electrónico, que anteriormente generaba inconvenientes en el seguimiento y causaba inconsistencias en la información. Además, la app permitirá al nutricionista programar notificaciones para mandar a los pacientes por distintos motivos, como motivaciones o recordatorios. Otra funcionalidad clave será la incorporación de un calendario dinámico, donde el paciente podrá subir fotos de sus comidas y registrar eventos relevantes del día, como sesiones de ejercicio, consumo de suplementos o vitaminas, o el inicio de su período. Esto facilitará un seguimiento más detallado y visual tanto para el paciente como para el profesional de la salud.
+---
 
-Usuarios destinados 
-- La aplicación está pensada exclusivamente para mejorar la experiencia de los pacientes, facilitando la gestión de su información y el seguimiento de su progreso.
-- La aplicación también contará con su versión de Administrador/Profesional
+## 📱 Objetivo de la app
 
-Problemas que resuelve
-- Evita la pérdida o desorganización de archivos enviados por correo.
-- Mejora el seguimiento del progreso del paciente.
-- Centraliza la información en una sola plataforma intuitiva.
-- Facilita la comunicación entre paciente y profesional.
+La app busca mejorar la experiencia del paciente en la gestión de su información personal, como:
 
+- Estudios de sangre
+- Informes PDF de mediciones corporales
+- Planes alimenticios
+- Registro de comidas y actividad física
+
+Además, permite que el nutricionista envíe **notificaciones programadas** (motivaciones, recordatorios, etc.) y que el paciente registre eventos importantes en un **calendario dinámico**, como:
+
+- Sesiones de ejercicio
+- Ingesta de suplementos o vitaminas
+- Inicio de su período menstrual
+
+Todo esto se integra para lograr un seguimiento visual, práctico y más eficaz tanto para el paciente como para el profesional.
+
+---
+
+## 👥 Usuarios destinatarios
+
+- **Pacientes**: acceden a sus archivos, cargan fotos, registran eventos y reciben notificaciones.
+- **Profesionales de la nutrición**: administran pacientes, envían documentación (planes alimenticios, recomendaciones, listas de compras, etc.) a los pacientes, programan notificaciones y acceden a la información de forma centralizada.
+
+---
+
+## 🛠️ Funcionalidades principales
+
+- Ingreso y visualización de datos de pacientes
+- Administración de archivos (PDF, imágenes)
+- Calendario dinámico con eventos y fotos
+- Envío de notificaciones personalizadas
+- Distintos roles de usuario (paciente y profesional)
+
+---
+
+## 🎯 Problemas que resuelve
+
+- Evita el uso del correo electrónico para envío de archivos
+- Centraliza toda la información en una sola app
+- Mejora el seguimiento y la continuidad del tratamiento
+- Facilita la comunicación y la organización
